@@ -101,6 +101,31 @@ This is a **Turborepo monorepo** containing:
 - Use **Elysia** decorators and plugins appropriately
 - Keep routes clean and delegate logic to services
 
+### Validation (Zod)
+- **CRITICAL**: Never use `z.transform()` for data transformation
+  - ❌ Bad: `z.string().transform((val) => val.split(','))`
+  - ✅ Good: Use **Zod Codecs** (custom schema types) instead for transformations
+- Use Zod only for **validation**, not transformation
+- For complex transformations, create custom Zod schemas or use preprocessing
+- Example with Zod Codecs:
+  ```typescript
+  import { z } from 'zod'
+  
+  // Create a custom codec for comma-separated strings
+  const CommaSeparatedArray = z.string().pipe(
+    z.custom<string[]>((val) => {
+      if (typeof val !== 'string') return false
+      return true
+    }).transform((val) => val.split(','))
+  )
+  
+  // Or use preprocess for safer approach
+  const CommaSeparatedArray = z.preprocess(
+    (val) => typeof val === 'string' ? val.split(',') : val,
+    z.array(z.string())
+  )
+  ```
+
 ### Frontend (Next.js + MUI)
 - Use **Next.js App Router** conventions
 - Prefer **Server Components** by default

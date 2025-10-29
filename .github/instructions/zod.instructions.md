@@ -378,4 +378,193 @@ applyTo: 'apps/api/**, apps/web/**'
 
 ---
 
+## 🚨 Zod v4 Breaking Changes & Deprecated APIs
+
+### Deprecated String Methods (Use Top-Level Formats Instead)
+
+```ts
+// ❌ DEPRECATED (Zod v3)
+z.string().url()
+z.string().email()
+z.string().uuid()
+z.string().cuid()
+z.string().cuid2()
+z.string().ulid()
+z.string().datetime()
+z.string().date()
+z.string().time()
+z.string().ip()
+z.string().ipv4()
+z.string().ipv6()
+z.string().cidr()
+z.string().jwt()
+z.string().base64()
+z.string().base64url()
+
+// ✅ CORRECT (Zod v4)
+z.url()
+z.email()
+z.uuid()
+z.cuid()
+z.cuid2()
+z.ulid()
+z.datetime()
+z.date()
+z.time()
+z.ipv4()
+z.ipv6()
+z.ipBlock()
+z.jwt()
+z.base64()
+z.base64url()
+```
+
+### Key Changes in Zod v4
+
+1. **String formats moved to top-level**: Use `z.url()` instead of `z.string().url()`
+2. **Dropped `z.string().ip()`**: Use `z.ipv4()` or `z.ipv6()` instead
+3. **Renamed `z.string().cidr()`**: Now `z.ipBlock()`
+4. **No `.default()` in pipes**: Use `.catch()` or handle defaults outside schema
+5. **Stricter validation**: Many formats are now more strict (e.g., UUID, base64url)
+
+---
+
+## Environment Variable Validation with Zod
+
+Zod is commonly used with `@t3-oss/env-nextjs` or `@t3-oss/env-core` for type-safe environment variable validation. See `.github/instructions/t3-env.instructions.md` for complete integration guide.
+
+### Quick Example
+
+```ts
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
+
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.url(),  // ✅ Zod v4
+    JWT_SECRET: z.string().min(32),
+    PORT: z.coerce.number().catch(3000),  // ✅ Use .catch() instead of .default()
+  },
+  client: {
+    NEXT_PUBLIC_API_URL: z.url(),  // ✅ Zod v4
+  },
+  runtimeEnv: process.env,
+});
+```
+
+### Common Environment Schemas
+
+```ts
+// Database
+DATABASE_URL: z.url()  // ✅ Zod v4
+DATABASE_URL_POOLED: z.url().optional()  // ✅ Zod v4
+
+// API Keys
+API_KEY: z.string().min(1)
+STRIPE_SECRET_KEY: z.string().startsWith("sk_")
+OPENAI_API_KEY: z.string().startsWith("sk-").optional()
+
+// Numbers
+PORT: z.coerce.number().int().positive().catch(3000)  // ✅ Use .catch()
+MAX_CONNECTIONS: z.coerce.number().int().positive()
+
+// Booleans
+ENABLE_FEATURE: z.coerce.boolean().catch(false)  // ✅ Use .catch()
+DEBUG: z.stringBool()  // ✅ Zod v4 native stringBool
+
+// URLs
+API_URL: z.url()  // ✅ Zod v4
+WEBHOOK_URL: z.url().refine(url => url.startsWith("https://"), {
+  message: "Webhook URL must use HTTPS"
+})  // ✅ Use .refine() for additional validation
+
+// Enums
+NODE_ENV: z.enum(["development", "production", "test"])
+LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).catch("info")  // ✅ Use .catch()
+
+// Emails
+ADMIN_EMAIL: z.email()  // ✅ Zod v4
+
+// IP Addresses
+SERVER_IP: z.ipv4()  // ✅ Zod v4
+SERVER_IP_V6: z.ipv6()  // ✅ Zod v4
+ALLOWED_CIDR: z.ipBlock()  // ✅ Zod v4 (renamed from .cidr())
+
+// JWTs
+JWT_TOKEN: z.jwt()  // ✅ Zod v4
+
+// Arrays from comma-separated strings
+ALLOWED_ORIGINS: z
+  .string()
+  .transform(val => val.split(","))
+  .pipe(z.array(z.url()))  // ✅ Zod v4
+```
+
+### Best Practices for Environment Validation
+
+1. **Use Zod v4 top-level formats (not deprecated methods)**
+```ts
+// ❌ WRONG (deprecated)
+DATABASE_URL: z.string().url()
+ADMIN_EMAIL: z.string().email()
+
+// ✅ CORRECT (Zod v4)
+DATABASE_URL: z.url()
+ADMIN_EMAIL: z.email()
+```
+
+2. **Use descriptive error messages**
+```ts
+JWT_SECRET: z.string().min(32, "JWT secret must be at least 32 characters")
+```
+
+3. **Use `.catch()` instead of `.default()` in pipes**
+```ts
+// ❌ WRONG (deprecated in pipes)
+PORT: z.coerce.number().default(3000)
+
+// ✅ CORRECT (Zod v4)
+PORT: z.coerce.number().catch(3000)
+
+// ✅ ALSO CORRECT (for simple schemas)
+PORT: z.number().default(3000)  // .default() OK for non-pipe schemas
+```
+
+4. **Use emptyStringAsUndefined**
+```ts
+createEnv({
+  server: { /* ... */ },
+  runtimeEnv: process.env,
+  emptyStringAsUndefined: true, // Treats "" as undefined
+})
+```
+
+5. **Validate at startup**
+```ts
+// Import env at the top of your main file
+import "./env"; // Validates immediately
+```
+
+6. **Use coercion for environment variables**
+```ts
+// Environment variables are always strings
+PORT: z.coerce.number() // Converts "3000" to 3000
+ENABLE_SSL: z.coerce.boolean() // Converts "true" to true
+DEBUG: z.stringBool() // ✅ Zod v4 native boolean coercion
+```
+
+7. **Never use `.transform()` for validation (use Zod Codecs instead)**
+```ts
+// ❌ WRONG (transforms should not be used for validation)
+VALUE: z.string().transform(val => val.split(','))
+
+// ✅ CORRECT (use preprocessing or codecs)
+VALUE: z.preprocess(
+  val => typeof val === 'string' ? val.split(',') : val,
+  z.array(z.string())
+)
+```
+
+---
+
 This documentation covers Zod v4, a TypeScript-first schema validation library. Use the URLs above to access specific pages and sections for detailed information about schema definition, validation, error handling, and advanced patterns.

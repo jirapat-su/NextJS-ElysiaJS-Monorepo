@@ -1,8 +1,8 @@
-import '@dotenvx/dotenvx/config'
 import { cors } from '@elysiajs/cors'
 import { Effect } from 'effect'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
+import { env } from './env'
 
 // Schema example using Zod
 const UserSchema = z.object({
@@ -22,30 +22,22 @@ const getUserEffect = (id: string) =>
     }
   })
 
-// Environment variables
-const PORT = process.env.PORT || 3001
-const NODE_ENV = process.env.NODE_ENV || 'development'
-const DATABASE_URL = process.env.DATABASE_URL
-
 export const app = new Elysia()
   .use(cors())
   .get('/', () => ({
     message: 'Hello from Elysia + Effect + Zod!',
-    environment: NODE_ENV,
-    port: PORT,
+    environment: env.NODE_ENV,
+    port: env.PORT,
   }))
   .get('/health', () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-    databaseConnected: !!DATABASE_URL,
+    environment: env.NODE_ENV,
+    databaseConnected: !!env.DATABASE_URL,
   }))
   .get('/env', () => ({
-    environment: NODE_ENV,
-    port: PORT,
-    hasDatabase: !!DATABASE_URL,
-    apiSecretKey: process.env.API_SECRET_KEY ? '***' : undefined,
-    jwtSecret: process.env.JWT_SECRET ? '***' : undefined,
+    environment: env.NODE_ENV,
+    port: env.PORT,
   }))
   .post('/users', async ({ body }) => {
     const validated = UserSchema.parse(body)
@@ -58,9 +50,7 @@ export const app = new Elysia()
     const user = await Effect.runPromise(getUserEffect(id))
     return user
   })
-  .listen(PORT, ({ url }) => {
+  .listen(env.PORT, ({ url }) => {
     console.log(`🦊 Elysia is running at ${url}`)
-    console.log(`📦 Environment: ${NODE_ENV}`)
-    console.log(`🗄️  Database: ${DATABASE_URL ? 'Connected' : 'Not configured'}`)
+    console.log(`📦 Environment: ${env.NODE_ENV}`)
   })
-

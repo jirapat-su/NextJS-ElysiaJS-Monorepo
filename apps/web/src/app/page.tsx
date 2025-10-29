@@ -3,6 +3,7 @@
 import { Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { z } from 'zod'
+import { env } from '@/env'
 
 // Schema validation with Zod
 const UserFormSchema = z.object({
@@ -34,7 +35,7 @@ export default function Home() {
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
         <Typography variant="h2" component="h1" gutterBottom>
-          Welcome to Next.js 16 + MUI
+          Welcome to Next.js 16 + MUI ({env.NODE_ENV})
         </Typography>
 
         <Stack spacing={3} sx={{ mt: 4 }}>

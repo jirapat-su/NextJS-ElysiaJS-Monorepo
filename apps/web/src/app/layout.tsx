@@ -1,6 +1,7 @@
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import type { Metadata } from 'next'
+import '@/env'
 import theme from '@/theme'
 
 export const metadata: Metadata = {
