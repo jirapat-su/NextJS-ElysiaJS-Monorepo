@@ -1,0 +1,41 @@
+{
+  "name": "@repo/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "dotenvx run -f .env.local -- bun --bun next dev",
+    "dev:production": "dotenvx run -f .env.production -- bun --bun next dev",
+    "build": "dotenvx run -f .env.local -- bun --bun next build",
+    "build:production": "dotenvx run -f .env.production -- bun --bun next build",
+    "start": "dotenvx run -f .env.local -- bun --bun next start",
+    "start:production": "dotenvx run -f .env.production -- bun --bun next start",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "type-check": "tsc --noEmit",
+    "env:encrypt": "dotenvx encrypt -f .env.local",
+    "env:encrypt:production": "dotenvx encrypt -f .env.production",
+    "env:decrypt": "dotenvx decrypt -f .env.local",
+    "env:get": "dotenvx get -f .env.local",
+    "env:set": "dotenvx set -f .env.local"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.3.0",
+    "@mui/material": "^6.3.0",
+    "@mui/material-nextjs": "^7.3.3",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^4.1.2"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@repo/api": "workspace:*",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.3"
+  }
+}

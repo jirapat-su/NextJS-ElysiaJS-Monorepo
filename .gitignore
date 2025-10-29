@@ -1,0 +1,13 @@
+node_modules
+.turbo
+.next
+dist
+
+tsconfig.tsbuildinfo
+
+# dotenvx keys (NEVER commit this - contains private decryption keys!)
+.env.keys
+
+# OS files
+.DS_Store
+*.log
