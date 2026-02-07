@@ -9,6 +9,7 @@ import {
 import { ThemeToggle } from '@src/components/ui/ThemeToggle';
 import { memo } from 'react';
 import { AppSidebar } from './AppSidebar';
+import { UserNav } from './UserNav';
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -36,7 +37,10 @@ export const AdminLayout = memo(({ children }: AdminLayoutProps) => {
               <span className="font-medium text-foreground">Overview</span>
             </div>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserNav />
+          </div>
         </header>
 
         <main className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
