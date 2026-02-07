@@ -1,56 +1,82 @@
-import { cors } from '@elysiajs/cors'
-import { Effect } from 'effect'
-import { Elysia } from 'elysia'
-import { z } from 'zod'
-import { env } from './env'
+import cors from '@elysiajs/cors';
+import { fromTypes, openapi } from '@elysiajs/openapi';
+import { Elysia } from 'elysia';
+import z from 'zod';
+import * as packageJson from '../package.json';
+import { SYSTEM_CONFIG } from './constants/system';
+import { env } from './env';
+import { auth, authOpenAPI } from './libs/auth';
+import { logger } from './libs/logger';
+import { disableCaching } from './plugins/disableCaching';
+import { rateLimitPlugin } from './plugins/rateLimit';
+import { requestID } from './plugins/requestID';
 
-// Schema example using Zod
-const UserSchema = z.object({
-  name: z.string().min(1),
-  email: z.email(),
-})
+const BETTER_AUTH_PATH = '/auth';
 
-// Effect example
-const getUserEffect = (id: string) =>
-  Effect.gen(function* () {
-    // Simulated database call
-    yield* Effect.sleep('100 millis')
+const app = new Elysia({ name: 'api-app' })
+  .use(requestID)
+  .use(disableCaching)
+  .use(
+    rateLimitPlugin({
+      max: 15, // 15 requests
+      window: 30000, // 30 seconds
+    })
+  )
+  .use(
+    cors({
+      origin: env.BETTER_AUTH_TRUSTED_ORIGINS,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true,
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        SYSTEM_CONFIG.CLIENT_APP_HEADER,
+      ],
+    })
+  )
+  .mount(BETTER_AUTH_PATH, auth.handler)
+  .use(
+    openapi({
+      mapJsonSchema: {
+        zod: z.toJSONSchema,
+      },
+      documentation: {
+        components: await authOpenAPI.components,
+        paths: await authOpenAPI.getPaths(BETTER_AUTH_PATH),
+        info: {
+          title: 'API Documentation',
+          version: packageJson.version,
+          description: 'API documentation',
+        },
+      },
+      path: '/docs',
+      provider: 'scalar',
+      references: fromTypes(
+        env.NODE_ENV === 'development' ? 'src/index.ts' : 'index.d.mts'
+      ),
+      specPath: '/docs/json',
+      enabled: true,
+      exclude: {
+        methods: ['all', 'options', 'head'],
+      },
+    })
+  )
+  .get('/', () => {
     return {
-      id,
-      name: 'John Doe',
-      email: 'john@example.com',
-    }
-  })
+      status: 'ok',
+      timezone: env.TZ,
+    };
+  });
 
-export const app = new Elysia()
-  .use(cors())
-  .get('/', () => ({
-    message: 'Hello from Elysia + Effect + Zod!',
-    environment: env.NODE_ENV,
-    port: env.PORT,
-  }))
-  .get('/health', () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV,
-    databaseConnected: !!env.DATABASE_URL,
-  }))
-  .get('/env', () => ({
-    environment: env.NODE_ENV,
-    port: env.PORT,
-  }))
-  .post('/users', async ({ body }) => {
-    const validated = UserSchema.parse(body)
-    return {
-      success: true,
-      data: validated,
-    }
-  })
-  .get('/users/:id', async ({ params: { id } }) => {
-    const user = await Effect.runPromise(getUserEffect(id))
-    return user
-  })
-  .listen(env.PORT, ({ url }) => {
-    console.log(`🦊 Elysia is running at ${url}`)
-    console.log(`📦 Environment: ${env.NODE_ENV}`)
-  })
+function createServer() {
+  if (env.VERCEL !== '1') {
+    return app.listen(env.PORT, server => {
+      logger.info(`🚀 Server ready at ${server.url}`);
+    });
+  }
+
+  return app;
+}
+
+export type ApiType = typeof app;
+export default createServer();

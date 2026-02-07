@@ -1,0 +1,24 @@
+{
+  "name": "@repo/fetch",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "lint": "tsc --noEmit && biome check --write --no-errors-on-unmatched --files-ignore-unknown=true .",
+    "format": "tsc --noEmit && biome format --write ."
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "asynckit": "^0.4.0"
+  },
+  "dependencies": {
+    "axios": "^1.13.4"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

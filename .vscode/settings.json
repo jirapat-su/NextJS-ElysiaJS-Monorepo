@@ -1,43 +1,63 @@
 {
-  "biome.enabled": true,
-  "editor.defaultFormatter": "biomejs.biome",
-  "editor.formatOnSave": true,
+  "[css]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "biome.lsp.bin": "./node_modules/@biomejs/biome/bin/biome",
   "editor.codeActionsOnSave": {
-    "source.fixAll.biome": "explicit"
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
   },
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.tabSize": 2,
   "eslint.enable": false,
-  "prettier.enable": false,
-  "markdown.validate.enabled": false,
-  "markdown.validate.fileLinks.enabled": "ignore",
-  "markdown.validate.referenceLinks.enabled": "ignore",
-  "markdown.validate.fragmentLinks.enabled": "ignore",
-  "markdown.validate.ignoredLinks": [
-    "**"
-  ],
-  "github.copilot.advanced": {
-    "inlineSuggestCount": 3
-  },
-  "github.copilot.chat.localeOverride": "en",
+  "explorer.compactFolders": false,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
   "files.watcherExclude": {
-    "**/.github/instructions/**": true
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.vercel/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true
   },
-  "files.exclude": {
-    "**/.git": true,
-    "**/.DS_Store": true,
-    "**/node_modules": true,
-    "**/.turbo": true
-  },
+  "prettier.enable": false,
   "search.exclude": {
-    "**/.github/**/*.md": true,
-    "**/*.md": true,
-    "**/node_modules": true,
+    "**/.vercel": true,
     "**/dist": true,
-    "**/build": true,
-    "**/.turbo": true,
-    "**/.next": true
+    "**/node_modules": true
   },
-  "[markdown]": {
-    "editor.defaultFormatter": null,
-    "editor.wordWrap": "off"
-  }
+  "tailwindCSS.experimental.classRegex": [
+    ["className\\s*:\\s*['\"]([^'\"]*)['\"]"]
+  ],
+  "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
+  "typescript.referencesCodeLens.enabled": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.autoClosingTags": false,
+  "prisma.pinToPrisma6": false
 }
