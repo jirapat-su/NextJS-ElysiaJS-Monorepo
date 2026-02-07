@@ -6,11 +6,12 @@ import {
   generateSecureToken,
   handleAxiosError,
   type ServerApiClientOptions,
-  setupServerAuthInterceptors,
+  setupServerCookieInterceptor,
 } from './utils';
 
 /**
- * Server-side HTTP client using Elysia Eden with Axios (supports cookie-based auth)
+ * Server-side HTTP client using Elysia Eden with Axios
+ * (better-auth handles session/refresh automatically via cookies)
  *
  * @param options - Configuration options for the API client
  * @returns Object containing client, axiosInstance, and abortAll methods
@@ -22,29 +23,16 @@ import {
  *   baseUrl: 'https://api.example.com',
  * });
  *
- * // With custom headers
- * const { client } = createApiClient({
- *   baseUrl: 'https://api.example.com',
- *   headers: {
- *     'X-API-Key': 'your-api-key',
- *   },
- *   withCredentials: false,
- * });
- *
  * // With cookie-based auth (Next.js Server Component)
  * import { cookies } from 'next/headers';
  *
  * const { client } = createApiClient({
  *   baseUrl: 'https://api.example.com',
  *   getCookies: async () => (await cookies()).toString(),
- *   refreshTokenEndpoint: '/auth/refresh-token',
  * });
  *
  * // Use Eden client for type-safe API calls
  * const { data, error } = await client.users({ id: '1' }).get();
- *
- * // Abort all pending requests
- * abortAll();
  * ```
  */
 export function createApiClient(options: ServerApiClientOptions) {
@@ -53,7 +41,6 @@ export function createApiClient(options: ServerApiClientOptions) {
     headers: defaultHeaders = {},
     withCredentials = true,
     getCookies,
-    refreshTokenEndpoint = '/auth/refresh-token',
   } = options;
 
   const axiosInstance = axios.create({
@@ -63,11 +50,7 @@ export function createApiClient(options: ServerApiClientOptions) {
   });
   const abortControllers = new Map<string, AbortController>();
 
-  setupServerAuthInterceptors(axiosInstance, {
-    baseUrl,
-    getCookies,
-    refreshTokenEndpoint,
-  });
+  setupServerCookieInterceptor(axiosInstance, getCookies);
 
   const fetcher = async (
     input: RequestInfo | URL,
@@ -101,7 +84,7 @@ export function createApiClient(options: ServerApiClientOptions) {
     headers: defaultHeaders,
     fetcher: Object.assign(fetcher, {
       preconnect: async () => {
-        // No-op: preconnect not needed for this implementation
+        // No-op: preconnect not needed
       },
     }),
   });

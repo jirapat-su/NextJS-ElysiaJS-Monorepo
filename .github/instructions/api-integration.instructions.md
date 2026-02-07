@@ -8,16 +8,16 @@ This document summarizes API client usage for internal (Elysia) and external ser
 
 ## 🔐 Authentication Architecture
 
-**Cookie-based authentication** is used throughout:
+**Cookie-based authentication** via **better-auth**:
 
-- Backend sets `httpOnly` cookies for both access and refresh tokens
-- Frontend automatically sends cookies with `withCredentials: true`
-- Auto token refresh on 401 responses (transparent to application code)
+- better-auth manages session tokens in `httpOnly` cookies automatically
+- Frontend sends cookies with `withCredentials: true`
+- Session refresh is handled by better-auth internally (no manual refresh token logic)
 - No token management needed in frontend state
 
 ```
-Browser (Client) <-> Backend (Elysia) via cookies
-Next.js (Server) <-> Backend (Elysia) via getCookies()
+Browser (Client) <-> Backend (Elysia + better-auth) via cookies
+Next.js (Server) <-> Backend (Elysia + better-auth) via getCookies()
 ```
 
 ---
@@ -35,7 +35,7 @@ Use for all calls to the Elysia backend (`apps/api`).
 ```tsx
 'use client';
 
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useApiClient } from '@repo/internal-api/client';
 import { env } from '@/env';
 
@@ -153,7 +153,6 @@ export default async function DashboardPage() {
 // For public endpoints that don't need authentication
 const { client } = createApiClient({
   baseUrl: env.API_INTERNAL_URL,
-  // No getCookies needed for public endpoints
 });
 
 const { data } = await client.public.health.get();
@@ -328,7 +327,7 @@ if (error) {
   console.error('API Error:', error);
 
   if (status === 401) {
-    // Unauthorized - redirect to login
+    // Unauthorized - session expired or not logged in
     redirect('/sign-in');
   }
 
@@ -406,3 +405,4 @@ API_INTERNAL_URL=http://localhost:5005
 - Use `@repo/fetch` for external APIs
 - Use TanStack Query for client-side fetching
 - Forward cookies in server-side calls with `getCookies`
+- Authentication is managed by better-auth (no manual refresh token logic)
