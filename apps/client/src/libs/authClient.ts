@@ -1,5 +1,9 @@
 import { env } from '@src/env';
-import { anonymousClient, usernameClient } from 'better-auth/client/plugins';
+import {
+  anonymousClient,
+  multiSessionClient,
+  usernameClient,
+} from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
@@ -10,5 +14,5 @@ export const authClient = createAuthClient({
       'x-client-app': 'client',
     },
   },
-  plugins: [usernameClient(), anonymousClient()],
+  plugins: [usernameClient(), anonymousClient(), multiSessionClient()],
 });

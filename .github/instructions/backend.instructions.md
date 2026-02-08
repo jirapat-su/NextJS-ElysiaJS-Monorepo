@@ -8,44 +8,7 @@ Follow these rules for a resilient, type-safe backend.
 
 ## 📂 File Organization & Structure
 
-Feature-based structure with high cohesion.
-
-### Feature Structure
-```
-src/features/[featureName]/
-├── [featureName].router.ts      # Feature router (aggregates all handlers)
-├── [moduleName]/
-│   ├── [moduleName].handler.ts      # HTTP Entry, Validation, Effect Runtime
-│   ├── [moduleName].service.ts      # Business logic, Orchestration
-│   ├── [moduleName].repository.ts   # Database interaction (Prisma)
-│   ├── [moduleName].schema.ts       # Zod validation & response schemas
-│   └── [moduleName].utils.ts        # Module-specific helpers, constants, configs
-└── utils.ts                         # Feature-level helpers (shared across modules)
-```
-
-### Lib Structure
-
-Libraries in `src/libs/` must follow a directory-based structure:
-
-```
-src/libs/
-├── [libName]/
-│   ├── index.ts        # Main export
-│   ├── config.ts       # Configuration & constants
-│   └── types.ts        # Types (optional)
-```
-
-### Plugin Structure
-
-Plugins in `src/plugins/` must follow a directory-based structure:
-
-```
-src/plugins/
-├── [pluginName]/
-│   ├── index.ts        # Main export
-│   ├── config.ts       # Configuration & constants
-│   └── types.ts        # Types (optional)
-```
+**See [quality.instructions.md](./quality.instructions.md) for directory structure (Section 7).**
 
 ### Module-Level Utils Pattern
 

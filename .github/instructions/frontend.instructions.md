@@ -27,63 +27,7 @@ UserCard.displayName = 'UserCard';
 
 ## 🏗️ File Organization
 
-**Critical rules**
-- **Shared components**: use `index.tsx` + related files
-- **Features**: no `index.ts` (direct imports only)
-
-**Before creating new components, check**
-1. `src/components/`
-2. `packages/shadcn`
-
-### `src/components` Structure
-- `ui/`: Custom UI components (that are NOT from shadcn or are customized)
-- `layout/`: Application layouts
-- `providers/`: Context providers
-
-```
-src/
-├── components/
-│   ├── ui/                       # Custom generic UI components
-│   │   ├── [ComponentName]/
-│   │   │   ├── index.tsx
-│   │   │   └── styles.module.css
-│   │
-│   ├── layout/                   # Application layouts
-│   │   ├── [LayoutName]/
-│   │   │   ├── index.tsx
-│   │   │   └── Sidebar.tsx
-│   │
-│   └── providers/                # Global providers
-│       ├── [ProviderName]/
-│       │   ├── index.tsx
-│       │   └── context.ts
-│
-├── features/[moduleName]/        # SHARED Feature modules (used in multiple pages)
-│   ├── index.tsx                 # Main feature component
-│   ├── [SubComponent].tsx        # Feature specific sub-components
-│   ├── use[Feature]API.ts        # Feature specific API hooks
-│   └── helpers.ts                # Feature specific helpers
-│
-├── hooks/                        # Global hooks + common API hooks
-│   └── useCommonAPI.ts           # Shared API operations
-├── lib/                          # Global utils
-└── types/                        # Global types
-```
-
-### Page-Specific Components (Co-location)
-
-If a component, hook, or asset is **only used in one specific page**, co-locate it within that page's directory using `_` prefixed folders.
-
-```
-src/app/(public)/sign-in/
-├── page.tsx
-├── _components/
-│   └── SignInForm.tsx
-├── _hooks/
-│   └── useSignInAPI.ts
-├── _assets/
-│   └── logo.png
-```
+**See [quality.instructions.md](./quality.instructions.md) for directory structure (Section 7).**
 
 ### Component Decomposition
 - **Single responsibility**: split multi-step or multi-state UIs into sub-components.

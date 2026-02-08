@@ -53,7 +53,7 @@ For comprehensive development guidelines, refer to:
 
 | File | Scope | Description |
 |------|-------|-------------|
-| ⭐ [quality.instructions.md](instructions/quality.instructions.md) | `**` | **MUST READ** - Task confirmation, quality gates, pre-submission checklist |
+| ⭐ [quality.instructions.md](instructions/quality.instructions.md) | `**` | **MUST READ** - Quality gates, file & directory structure, pre-submission checklist |
 | [backend.instructions.md](instructions/backend.instructions.md) | `apps/api/**` | HSR architecture, Effect-TS patterns, Elysia handlers |
 | [database.instructions.md](instructions/database.instructions.md) | `apps/api/**` | Prisma multi-file schema, migrations, model templates |
 | [frontend.instructions.md](instructions/frontend.instructions.md) | `apps/back-office/**`, `apps/web/**` | React patterns, performance rules, Next.js specifics |

@@ -1,5 +1,4 @@
 'use client';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@repo/shadcn/components/ui/button';
 import {
   Card,
@@ -9,26 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/shadcn/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@repo/shadcn/components/ui/form';
-import { Input } from '@repo/shadcn/components/ui/input';
 import { Separator } from '@repo/shadcn/components/ui/separator';
 import { ThemeToggle } from '@src/components/ui/ThemeToggle';
 import { authClient } from '@src/libs/authClient';
 import {
   ArrowRight,
   Command,
-  Eye,
-  EyeOff,
   LayoutDashboard,
-  Loader2,
-  Lock,
   Mail,
   ShieldCheck,
   User,
@@ -36,17 +22,14 @@ import {
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import {
-  type EmailSignInSchema,
-  emailSignInSchema,
-  type UsernameSignInSchema,
-  usernameSignInSchema,
-} from './signInForm.schema';
+import { EmailSignInForm } from './EmailSignInForm';
+import { ExistingSessionPicker } from './ExistingSessionPicker';
+import { UsernameSignInForm } from './UsernameSignInForm';
 
 type AuthMode = 'email' | 'username';
 
 export const SignInForm = memo(() => {
+  const { data: session } = authClient.useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authMode, setAuthMode] = useState<AuthMode>('email');
@@ -59,62 +42,15 @@ export const SignInForm = memo(() => {
     return value.startsWith('/') ? value : '/';
   }, [searchParams]);
 
-  const emailForm = useForm<EmailSignInSchema>({
-    resolver: zodResolver(emailSignInSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      rememberMe: true,
-    },
-  });
-
-  const usernameForm = useForm<UsernameSignInSchema>({
-    resolver: zodResolver(usernameSignInSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-    },
-  });
-
-  const onSubmitEmail = useCallback(
-    async (values: EmailSignInSchema) => {
-      setIsLoading(true);
-      setErrorMessage(null);
-      const { error } = await authClient.signIn.email({
-        email: values.email,
-        password: values.password,
-        rememberMe: values.rememberMe ?? true,
-        callbackURL: returnTo,
-      });
-      if (error) {
-        setErrorMessage(error.message || 'Authentication failed');
-        setIsLoading(false);
-      } else {
-        router.push(returnTo);
-      }
-    },
-    [returnTo, router]
-  );
-
-  const onSubmitUsername = useCallback(
-    async (values: UsernameSignInSchema) => {
-      setIsLoading(true);
-      setErrorMessage(null);
-      const { error } = await authClient.signIn.username({
-        username: values.username,
-        password: values.password,
-      });
-      if (error) {
-        setErrorMessage(error.message || 'Authentication failed');
-        setIsLoading(false);
-      } else {
-        router.push(returnTo);
-      }
-    },
-    [returnTo, router]
-  );
+  const isAnonymousSession = useMemo(() => {
+    const email = session?.user?.email;
+    return Boolean(email?.endsWith('@anon.local'));
+  }, [session?.user?.email]);
 
   const handleGuestAccess = useCallback(async () => {
+    if (isAnonymousSession) {
+      return;
+    }
     setIsLoading(true);
     setErrorMessage(null);
     const { error } = await authClient.signIn.anonymous();
@@ -124,7 +60,7 @@ export const SignInForm = memo(() => {
     } else {
       router.push(returnTo);
     }
-  }, [returnTo, router]);
+  }, [isAnonymousSession, returnTo, router]);
 
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row">
@@ -189,10 +125,12 @@ export const SignInForm = memo(() => {
         <Card className="w-full max-w-md border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-lg">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="font-bold text-2xl tracking-tight">
-              Welcome back
+              {session ? 'Add another account' : 'Welcome back'}
             </CardTitle>
             <CardDescription className="text-base">
-              Enter your credentials to access your account.
+              {session
+                ? `You are currently signed in as ${session.user.name}.`
+                : 'Enter your credentials to access your account.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -232,148 +170,33 @@ export const SignInForm = memo(() => {
             )}
 
             {authMode === 'email' ? (
-              <Form {...emailForm}>
-                <form
-                  onSubmit={emailForm.handleSubmit(onSubmitEmail)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={emailForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="name@company.com"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={emailForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Password</FormLabel>
-                          {/* <Link
-                            href="/forgot-password"
-                            className="text-xs font-medium text-primary hover:underline"
-                          >
-                            Forgot?
-                          </Link> */}
-                        </div>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder="••••••••"
-                              className="pr-10 pl-10"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute top-2.5 right-3 text-muted-foreground hover:text-foreground"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
-                    Sign in with Email
-                  </Button>
-                </form>
-              </Form>
+              <EmailSignInForm
+                isLoading={isLoading}
+                showPassword={showPassword}
+                returnTo={returnTo}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                onSetLoading={setIsLoading}
+                onSetError={setErrorMessage}
+              />
             ) : (
-              <Form {...usernameForm}>
-                <form
-                  onSubmit={usernameForm.handleSubmit(onSubmitUsername)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={usernameForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="username"
-                              className="pl-10"
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={usernameForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Password</FormLabel>
-                        </div>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder="••••••••"
-                              className="pr-10 pl-10"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute top-2.5 right-3 text-muted-foreground hover:text-foreground"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
-                    Sign in with Username
-                  </Button>
-                </form>
-              </Form>
+              <UsernameSignInForm
+                isLoading={isLoading}
+                showPassword={showPassword}
+                returnTo={returnTo}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+                onSetLoading={setIsLoading}
+                onSetError={setErrorMessage}
+              />
             )}
+
+            <ExistingSessionPicker
+              currentSessionToken={session?.session?.token}
+              currentSessionEmail={session?.user?.email ?? null}
+              isLoading={isLoading}
+              returnTo={returnTo}
+              onSetLoading={setIsLoading}
+              onSetError={setErrorMessage}
+            />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -391,7 +214,7 @@ export const SignInForm = memo(() => {
               type="button"
               className="w-full gap-2 border-dashed"
               onClick={handleGuestAccess}
-              disabled={isLoading}
+              disabled={isLoading || isAnonymousSession}
             >
               <span className="font-bold font-mono text-xs">GUEST</span>
               Visitor Access

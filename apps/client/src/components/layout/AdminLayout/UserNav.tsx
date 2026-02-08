@@ -17,22 +17,112 @@ import {
   DropdownMenuTrigger,
 } from '@repo/shadcn/components/ui/dropdown-menu';
 import { authClient } from '@src/libs/authClient';
-import { LogOut, Settings, User } from 'lucide-react';
+import { Check, LogOut, Plus, Settings, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+
+type SessionWithUser = {
+  session: {
+    token: string;
+  };
+  user: {
+    name: string;
+    email: string;
+    image?: string | null;
+  };
+};
 
 export const UserNav = memo(() => {
-  const { data: session } = authClient.useSession();
+  const { data: session, refetch: refetchSession } = authClient.useSession();
+  const [sessions, setSessions] = useState<SessionWithUser[]>([]);
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadSessions = useCallback(async () => {
+    const { data } = await authClient.multiSession.listDeviceSessions();
+    if (data) {
+      setSessions(data as unknown as SessionWithUser[]);
+    } else {
+      setSessions([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSessions();
+  }, [loadSessions]);
 
   const handleSignOut = useCallback(async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push('/sign-in');
-        },
-      },
-    });
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const sessionToken = session?.session?.token;
+      if (!sessionToken) {
+        await authClient.signOut({
+          fetchOptions: {
+            onSuccess: () => {
+              router.push('/sign-in');
+            },
+          },
+        });
+        return;
+      }
+
+      const { error } = await authClient.multiSession.revoke({
+        sessionToken,
+      });
+
+      if (error) {
+        await authClient.signOut({
+          fetchOptions: {
+            onSuccess: () => {
+              router.push('/sign-in');
+            },
+          },
+        });
+        return;
+      }
+
+      await loadSessions();
+      await refetchSession();
+      router.push('/sign-in');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    isLoading,
+    loadSessions,
+    refetchSession,
+    router,
+    session?.session?.token,
+  ]);
+
+  const handleSwitchAccount = useCallback(
+    async (sessionToken: string) => {
+      if (isLoading) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const { error } = await authClient.multiSession.setActive({
+          sessionToken,
+        });
+        if (error) {
+          await loadSessions();
+          return;
+        }
+        await loadSessions();
+        router.refresh();
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isLoading, loadSessions, router]
+  );
+
+  const handleAddAccount = useCallback(() => {
+    router.push('/sign-in');
   }, [router]);
 
   const initials = useMemo(() => {
@@ -47,8 +137,6 @@ export const UserNav = memo(() => {
       .substring(0, 2);
   }, [session?.user?.name]);
 
-  // Placeholder for when session is loading or not present (although this component might only be shown when auth)
-  // For now if no session, we render nothing or skeleton.
   if (!session) {
     return null;
   }
@@ -78,6 +166,37 @@ export const UserNav = memo(() => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+
+        {/* Multi-session switching */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-muted-foreground text-xs">
+            Switch Account
+          </DropdownMenuLabel>
+          {sessions.map(s => (
+            <DropdownMenuItem
+              key={s.session.token}
+              onClick={() => handleSwitchAccount(s.session.token)}
+              disabled={isLoading}
+            >
+              <Avatar className="mr-2 h-6 w-6">
+                <AvatarImage src={s.user.image || ''} />
+                <AvatarFallback className="text-[10px]">
+                  {s.user.name?.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="flex-1 truncate text-xs">{s.user.name}</span>
+              {s.session.token === session.session.token && (
+                <Check className="ml-auto h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem onClick={handleAddAccount}>
+            <Plus className="mr-2 h-4 w-4" />
+            <span>Add another account</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <User className="mr-2 h-4 w-4" />
@@ -91,7 +210,7 @@ export const UserNav = memo(() => {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
+        <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>

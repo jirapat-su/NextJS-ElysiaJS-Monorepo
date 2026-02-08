@@ -8,24 +8,7 @@ Prisma schema conventions and database access patterns for apps/api.
 
 ## 📂 Multi-File Prisma Schema
 
-### Directory Structure
-
-```
-apps/api/prisma/
-├── schema.prisma          # Main schema file (datasource, generator)
-├── prisma.config.ts       # Prisma configuration
-├── models/
-│   ├── common.prisma      # Shared enums and types
-│   └── auth/
-│       ├── user.prisma    # User models
-│       └── otp.prisma     # OTP/authentication models
-├── migrations/
-│   └── ...
-└── seeds/
-    ├── index.ts
-    └── auth/
-        └── user.ts
-```
+**See [quality.instructions.md](./quality.instructions.md) for directory structure (Section 7).**
 
 ### Prisma Commands
 

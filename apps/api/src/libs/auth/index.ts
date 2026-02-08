@@ -17,17 +17,70 @@ import { enforceTeacherRole } from './guard';
 const BETTER_AUTH_CACHE = createCache('better-auth');
 const BETTER_AUTH_RUNTIME = RUNTIME('auth')();
 
+const useSecureCookies = env.NODE_ENV === 'production';
+
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_DOMAIN ?? `http://localhost:${env.PORT}`,
   secret: env.BETTER_AUTH_SECRET,
   basePath: '/',
+  advanced: {
+    useSecureCookies,
+    cookiePrefix: 'app',
+    cookies: {
+      session_token: {
+        attributes: {
+          sameSite: 'lax',
+          httpOnly: true,
+          secure: useSecureCookies,
+        },
+      },
+    },
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
+    freshAge: 60 * 5, // 5 minutes
+    storeSessionInDatabase: false,
+    preserveSessionInDatabase: true,
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+      strategy: 'jwe',
+    },
+  },
   trustedOrigins: env.BETTER_AUTH_TRUSTED_ORIGINS,
   plugins: [
     multiSession(),
     anonymous({
       generateRandomEmail: () => {
-        const id = crypto.randomUUID();
-        return `guest-${id}@example.com`;
+        const short = crypto.randomUUID().substring(0, 8);
+        return `guest-${short}@anon.local`;
+      },
+      generateName: () => {
+        const adjectives = [
+          'Swift',
+          'Brave',
+          'Calm',
+          'Bold',
+          'Keen',
+          'Wise',
+          'Sly',
+          'Deft',
+        ];
+        const animals = [
+          'Fox',
+          'Owl',
+          'Bear',
+          'Wolf',
+          'Hawk',
+          'Lynx',
+          'Deer',
+          'Crow',
+        ];
+        const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+        const animal = animals[Math.floor(Math.random() * animals.length)];
+        const num = Math.floor(Math.random() * 100);
+        return `${adj}${animal}${num}`;
       },
     }),
     username({
@@ -86,45 +139,3 @@ export const auth = betterAuth({
       }).pipe(BETTER_AUTH_RUNTIME.runPromise),
   },
 });
-
-type OpenAPISchema = Awaited<ReturnType<typeof auth.api.generateOpenAPISchema>>;
-
-let _schema: OpenAPISchema | null = null;
-
-const getSchema = async (): Promise<OpenAPISchema> => {
-  if (!_schema) {
-    _schema = await auth.api.generateOpenAPISchema();
-  }
-  return _schema;
-};
-
-export const authOpenAPI = {
-  getPaths: (prefix = '/auth') =>
-    getSchema().then(({ paths }) => {
-      const reference: Record<string, unknown> = Object.create(null);
-
-      for (const path of Object.keys(paths)) {
-        const key = prefix + path;
-        const pathItem = paths[path as keyof typeof paths];
-        if (!pathItem) {
-          continue;
-        }
-
-        reference[key] = pathItem;
-
-        for (const method of Object.keys(pathItem)) {
-          const operation = (reference[key] as Record<string, unknown>)[method];
-          if (operation && typeof operation === 'object') {
-            (operation as Record<string, unknown>).tags = ['Better Auth'];
-          }
-        }
-      }
-
-      // biome-ignore lint/suspicious/noExplicitAny: don't want to type this fully
-      return reference as any;
-    }),
-  components: getSchema().then(({ components }) => {
-    // biome-ignore lint/suspicious/noExplicitAny: don't want to type this fully
-    return components as any;
-  }),
-} as const;

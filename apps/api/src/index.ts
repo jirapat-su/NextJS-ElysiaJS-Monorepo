@@ -5,7 +5,8 @@ import z from 'zod';
 import * as packageJson from '../package.json';
 import { SYSTEM_CONFIG } from './constants/system';
 import { env } from './env';
-import { auth, authOpenAPI } from './libs/auth';
+import { auth } from './libs/auth';
+import { authOpenAPI } from './libs/auth/openapi';
 import { logger } from './libs/logger';
 import { disableCaching } from './plugins/disableCaching';
 import { rateLimitPlugin } from './plugins/rateLimit';
@@ -18,7 +19,7 @@ const app = new Elysia({ name: 'api-app' })
   .use(disableCaching)
   .use(
     rateLimitPlugin({
-      max: 15, // 15 requests
+      max: 20, // 20 requests
       window: 30000, // 30 seconds
     })
   )
