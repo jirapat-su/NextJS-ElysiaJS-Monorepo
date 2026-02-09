@@ -12,16 +12,17 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@repo/shadcn/components/ui/sidebar';
-import { authClient } from '@src/libs/authClient';
+import { authClient } from '@src/libs/auth/client';
 import { Home, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { memo, useCallback, useState } from 'react';
 
 const menuItems = [{ title: 'Home', icon: Home, url: '/' }];
 
 export const AppSidebar = memo(() => {
   const router = useRouter();
+  const pathname = usePathname();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleLogout = useCallback(async () => {
@@ -65,22 +66,30 @@ export const AppSidebar = memo(() => {
           </SidebarGroupLabel>
           <SidebarGroupContent className="space-y-1">
             <SidebarMenu>
-              {menuItems.map(item => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild={true}
-                    className="h-10 gap-3 rounded-lg px-3 transition-all hover:bg-primary/5 hover:text-primary active:bg-primary/10 data-[active=true]:bg-primary/5 data-[active=true]:text-primary"
-                  >
-                    <Link
-                      href={item.url}
-                      className="flex items-center gap-3 font-medium"
+              {menuItems.map(item => {
+                const isActive =
+                  item.url === '/'
+                    ? pathname === '/'
+                    : pathname.startsWith(item.url);
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild={true}
+                      isActive={isActive}
+                      className="h-10 gap-3 rounded-lg px-3 transition-all hover:bg-primary/5 hover:text-primary active:bg-primary/10 data-[active=true]:bg-primary/10 data-[active=true]:font-semibold data-[active=true]:text-primary"
                     >
-                      <item.icon className="h-4 w-4 shrink-0 opacity-70 transition-opacity group-hover:opacity-100" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-3 font-medium"
+                      >
+                        <item.icon className="h-4 w-4 shrink-0 opacity-70 transition-opacity group-hover:opacity-100 data-[active=true]:opacity-100" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

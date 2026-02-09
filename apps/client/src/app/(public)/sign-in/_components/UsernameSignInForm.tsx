@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@repo/shadcn/components/ui/form';
 import { Input } from '@repo/shadcn/components/ui/input';
-import { authClient } from '@src/libs/authClient';
+import { authClient } from '@src/libs/auth/client';
 import { Eye, EyeOff, Loader2, Lock, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback } from 'react';

@@ -16,7 +16,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@repo/shadcn/components/ui/dropdown-menu';
-import { authClient } from '@src/libs/authClient';
+import { authClient } from '@src/libs/auth/client';
 import { Check, LogOut, Plus, Settings, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';

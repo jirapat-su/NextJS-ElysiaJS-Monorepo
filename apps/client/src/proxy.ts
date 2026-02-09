@@ -2,8 +2,7 @@ import { getSessionCookie } from 'better-auth/cookies';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const ROUTE = {
-  ROOT: '/',
+const PUBLIC_ROUTES = {
   SIGN_IN: '/sign-in',
   TERMS_OF_SERVICE: '/terms-of-service',
 } as const;
@@ -12,17 +11,20 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = [ROUTE.SIGN_IN, ROUTE.TERMS_OF_SERVICE];
+  const publicRouteMatchers = [
+    (path: string) => path.startsWith(PUBLIC_ROUTES.SIGN_IN),
+    (path: string) => path.startsWith(PUBLIC_ROUTES.TERMS_OF_SERVICE),
+  ];
 
-  const isPublicPath = publicRoutes.some(publicRoute =>
-    pathname.startsWith(publicRoute)
-  );
+  const isPublicPath = publicRouteMatchers.some(match => match(pathname));
 
   if (isPublicPath) {
     return NextResponse.next();
   }
 
-  const sessionCookie = getSessionCookie(request);
+  const sessionCookie = getSessionCookie(request, {
+    cookiePrefix: 'app',
+  });
 
   if (!sessionCookie) {
     const signInUrl = new URL('/sign-in', request.url);

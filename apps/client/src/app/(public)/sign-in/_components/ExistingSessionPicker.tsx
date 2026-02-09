@@ -6,7 +6,7 @@ import {
   AvatarImage,
 } from '@repo/shadcn/components/ui/avatar';
 import { Button } from '@repo/shadcn/components/ui/button';
-import { authClient } from '@src/libs/authClient';
+import { authClient } from '@src/libs/auth/client';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback, useEffect, useState } from 'react';
 

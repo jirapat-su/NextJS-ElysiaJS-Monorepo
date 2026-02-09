@@ -10,7 +10,7 @@ import {
 } from '@repo/shadcn/components/ui/card';
 import { Separator } from '@repo/shadcn/components/ui/separator';
 import { ThemeToggle } from '@src/components/ui/ThemeToggle';
-import { authClient } from '@src/libs/authClient';
+import { authClient } from '@src/libs/auth/client';
 import {
   ArrowRight,
   Command,

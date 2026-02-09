@@ -46,6 +46,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@hookform/resolvers": "^5.2.2",
+        "@repo/fetch": "workspace:*",
         "@repo/internal-api": "workspace:*",
         "@repo/shadcn": "workspace:*",
         "@t3-oss/env-nextjs": "^0.13.10",
