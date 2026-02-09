@@ -1,39 +1,17 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { vercel } from '@t3-oss/env-nextjs/presets-zod';
-import z from 'zod';
+import { clientRuntimeEnv, clientSchema } from './client';
+import { serverRuntimeEnv, serverSchema } from './server';
 
 export const env = createEnv({
+  server: serverSchema,
+  client: clientSchema,
   extends: [vercel()],
-
-  server: {
-    TZ: z
-      .string()
-      .trim()
-      .refine(
-        tz => {
-          try {
-            Intl.DateTimeFormat(undefined, { timeZone: tz });
-            return true;
-          } catch {
-            return false;
-          }
-        },
-        { message: 'Invalid timezone' }
-      )
-      .readonly()
-      .default('Asia/Bangkok'),
-  },
-
-  client: {
-    NEXT_PUBLIC_API_INTERNAL_URL: z.url(),
-  },
-
   experimental__runtimeEnv: {
-    NEXT_PUBLIC_API_INTERNAL_URL: process.env.NEXT_PUBLIC_API_INTERNAL_URL,
+    ...clientRuntimeEnv,
+    ...serverRuntimeEnv,
   },
-
   emptyStringAsUndefined: true,
-
   onValidationError: issues => {
     console.error('❌ Environment validation failed:');
     for (const issue of issues) {

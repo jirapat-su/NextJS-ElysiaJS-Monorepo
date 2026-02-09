@@ -264,6 +264,170 @@ const displayDate = format(parseISO(apiDate), 'dd/MM/yyyy HH:mm:ss');
 
 ---
 
+## 13. Environment Variables (t3-env)
+
+All environment variables must be validated at startup using `@t3-oss/env-*` with Zod schemas. Never use `process.env` directly — always import from `env/index.ts`.
+
+### Frontend (`apps/client/src/env/`)
+
+Uses `@t3-oss/env-nextjs`. Split into 3 files for clarity:
+
+```
+src/env/
+├── index.ts    # createEnv - combines server + client schemas
+├── server.ts   # Server-only schema + runtimeEnv mapping
+└── client.ts   # Client schema (NEXT_PUBLIC_*) + runtimeEnv mapping
+```
+
+**`client.ts`** — Client-side variables (exposed to browser):
+
+```typescript
+import { z } from 'zod';
+
+/**
+ * Client-side environment variables schema
+ * These are exposed to the browser (must be prefixed with NEXT_PUBLIC_)
+ */
+export const clientSchema = {
+  NEXT_PUBLIC_API_INTERNAL_URL: z.url(),
+};
+
+/**
+ * Client-side runtime environment mapping
+ */
+export const clientRuntimeEnv = {
+  NEXT_PUBLIC_API_INTERNAL_URL: process.env.NEXT_PUBLIC_API_INTERNAL_URL,
+};
+```
+
+**`server.ts`** — Server-only variables:
+
+```typescript
+import { z } from 'zod';
+
+/**
+ * Server-side environment variables schema
+ * These are only available on the server and never exposed to the client
+ */
+export const serverSchema = {
+  TZ: z.string().trim().refine(/* ... */).readonly().default('Asia/Bangkok'),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+};
+
+/**
+ * Server-side runtime environment mapping
+ */
+export const serverRuntimeEnv = {
+  TZ: process.env.TZ,
+  NODE_ENV: process.env.NODE_ENV,
+};
+```
+
+**`index.ts`** — Combines schemas and exports `env`:
+
+```typescript
+import { createEnv } from '@t3-oss/env-nextjs';
+import { vercel } from '@t3-oss/env-nextjs/presets-zod';
+import { clientRuntimeEnv, clientSchema } from './client';
+import { serverRuntimeEnv, serverSchema } from './server';
+
+export const env = createEnv({
+  server: serverSchema,
+  client: clientSchema,
+  extends: [vercel()],
+  experimental__runtimeEnv: {
+    ...clientRuntimeEnv,
+    ...serverRuntimeEnv,
+  },
+  emptyStringAsUndefined: true,
+  onValidationError: issues => {
+    console.error('❌ Environment validation failed:');
+    for (const issue of issues) {
+      const path = issue.path?.join('.') ?? 'unknown';
+      console.error(`  - ${path}: ${issue.message}`);
+    }
+    throw new Error('Invalid environment variables');
+  },
+});
+```
+
+### Backend (`apps/api/src/env/`)
+
+Uses `@t3-oss/env-core`. Split into 2 files:
+
+```
+src/env/
+├── index.ts    # createEnv - combines server schema + runtimeEnv
+└── server.ts   # Server-only schema + runtimeEnv mapping
+```
+
+**`server.ts`** — Server-only variables:
+
+```typescript
+import z from 'zod';
+
+/**
+ * Server-side environment variables schema
+ * These are only available on the server and never exposed to the client
+ */
+export const serverSchema = {
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development').readonly(),
+  DATABASE_URL: z.url().min(1).readonly(),
+  REDIS_URL: z.url().min(1).readonly(),
+  PORT: z.coerce.number().min(1).max(65535).default(5005).readonly(),
+  // ... other server variables
+};
+
+/**
+ * Server-side runtime environment mapping
+ */
+export const serverRuntimeEnv = {
+  NODE_ENV: process.env.NODE_ENV,
+  DATABASE_URL: process.env.DATABASE_URL,
+  REDIS_URL: process.env.REDIS_URL,
+  PORT: process.env.PORT,
+  // ... other server variables
+};
+```
+
+**`index.ts`** — Combines schema and exports `env`:
+
+```typescript
+import { createEnv } from '@t3-oss/env-core';
+import { vercel } from '@t3-oss/env-core/presets-zod';
+import { serverRuntimeEnv, serverSchema } from './server';
+
+export const env = createEnv({
+  extends: [vercel()],
+  server: serverSchema,
+  runtimeEnv: {
+    ...serverRuntimeEnv,
+  },
+  emptyStringAsUndefined: true,
+  isServer: true,
+  onValidationError: issues => {
+    console.error('❌ Environment validation failed:');
+    for (const issue of issues) {
+      const path = issue.path?.join('.') ?? 'unknown';
+      console.error(`  - ${path}: ${issue.message}`);
+    }
+    throw new Error('Invalid environment variables');
+  },
+});
+```
+
+### Rules
+
+- **Never use `process.env` directly** — always `import { env } from '@/env'`
+- **Zod schemas are required** for all variables
+- Use `.readonly()` for values that should not be reassigned
+- Use `.default()` for variables with sensible defaults
+- `emptyStringAsUndefined: true` — empty strings are treated as missing
+- Frontend variables **must** be prefixed with `NEXT_PUBLIC_`
+- Add `onValidationError` handler for clear error messages at startup
+
+---
+
 ## Pre-Submission Checklist
 
 Before submitting any code changes, verify:
@@ -275,7 +439,8 @@ Before submitting any code changes, verify:
 - [ ] No commented-out code
 - [ ] Date/time uses `date-fns` and ISO 8601 strings
 - [ ] File naming follows conventions
-- [ ] Directory structure follows Section 7
+- [ ] Directory structure follows Section 8
 - [ ] No unnecessary `// biome-ignore` comments
+- [ ] Environment variables use `@t3-oss/env-*` with Zod validation
 
 **These rules apply to all files within this repository.**

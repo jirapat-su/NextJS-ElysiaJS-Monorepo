@@ -3,16 +3,16 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 const ROUTE = {
-  ROOT: { PATH: '/' },
-  SIGN_IN: { PATH: '/sign-in' },
-  TERMS_OF_SERVICE: { PATH: '/terms-of-service' },
+  ROOT: '/',
+  SIGN_IN: '/sign-in',
+  TERMS_OF_SERVICE: '/terms-of-service',
 } as const;
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = [ROUTE.SIGN_IN.PATH, ROUTE.TERMS_OF_SERVICE.PATH];
+  const publicRoutes = [ROUTE.SIGN_IN, ROUTE.TERMS_OF_SERVICE];
 
   const isPublicPath = publicRoutes.some(publicRoute =>
     pathname.startsWith(publicRoute)

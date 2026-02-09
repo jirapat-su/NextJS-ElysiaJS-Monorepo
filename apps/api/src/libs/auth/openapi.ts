@@ -28,7 +28,7 @@ export const authOpenAPI = {
         for (const method of Object.keys(pathItem)) {
           const operation = (reference[key] as Record<string, unknown>)[method];
           if (operation && typeof operation === 'object') {
-            (operation as Record<string, unknown>).tags = ['Better Auth'];
+            (operation as Record<string, unknown>).tags = ['Authentication'];
           }
         }
       }
