@@ -56,14 +56,27 @@ export const userRouter = new Elysia({
   .use(deleteUserHandler);
 ```
 
-**Router Registration in Main App:**
-```typescript
-// src/index.ts
-import { userRouter } from './features/user/user.router';
+**Router Registration in `src/features/router.ts`:**
 
-const app = new Elysia({ name: 'api-app' })
+All feature routers must be registered in the central `appRouter` at `src/features/router.ts`.
+The `appRouter` is then mounted once in `src/index.ts`.
+
+```typescript
+// src/features/router.ts
+import { Elysia } from 'elysia';
+import { env } from '../env';
+import { userRouter } from './user/user.router';
+import { productRouter } from './product/product.router';
+
+export const appRouter = new Elysia({ name: 'app-router' })
   .use(userRouter)
-  // ... other routers
+  .use(productRouter)
+  .get('/', ({ status }) => {
+    return status(200, {
+      status: 'ok',
+      timezone: env.TZ,
+    });
+  });
 ```
 
 ### Naming Convention

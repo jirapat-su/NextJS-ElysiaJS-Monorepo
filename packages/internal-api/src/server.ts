@@ -100,5 +100,3 @@ export function createApiClient(options: ServerApiClientOptions) {
     },
   };
 }
-
-export type { ServerApiClientOptions };

@@ -5,18 +5,19 @@ import z from 'zod';
 import * as packageJson from '../package.json';
 import { SYSTEM_CONFIG } from './constants/system';
 import { env } from './env';
+import { appRouter } from './features/router';
 import { auth } from './libs/auth';
 import { authOpenAPI } from './libs/auth/openapi';
 import { logger } from './libs/logger';
-import { disableCaching } from './plugins/disableCaching';
+import { disableCachingPlugin } from './plugins/disableCaching';
 import { rateLimitPlugin } from './plugins/rateLimit';
-import { requestID } from './plugins/requestID';
+import { requestIDPlugin } from './plugins/requestID';
 
 const BETTER_AUTH_PATH = '/auth';
 
 const app = new Elysia({ name: 'api-app' })
-  .use(requestID)
-  .use(disableCaching)
+  .use(requestIDPlugin)
+  .use(disableCachingPlugin)
   .use(
     rateLimitPlugin({
       max: 20, // 20 requests
@@ -36,6 +37,7 @@ const app = new Elysia({ name: 'api-app' })
     })
   )
   .mount(BETTER_AUTH_PATH, auth.handler)
+  .use(appRouter)
   .use(
     openapi({
       mapJsonSchema: {
@@ -61,13 +63,7 @@ const app = new Elysia({ name: 'api-app' })
         methods: ['all', 'options', 'head'],
       },
     })
-  )
-  .get('/', () => {
-    return {
-      status: 'ok',
-      timezone: env.TZ,
-    };
-  });
+  );
 
 function createServer() {
   if (env.VERCEL !== '1') {

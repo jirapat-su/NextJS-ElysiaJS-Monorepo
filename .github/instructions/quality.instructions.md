@@ -76,7 +76,27 @@ function processUser(user: User | null) {
 | **Styles** | camelCase | `userProfile.module.css` |
 | **Tests** | Match source + `.test.ts(x)` | `UserProfile.test.tsx`, `validateEmail.test.ts` |
 
-## 7. File & Directory Structure
+## 7. Export Pattern
+
+Always use **inline named exports** directly on declaration. Do not declare first and export separately.
+
+```typescript
+// ✅ Good - Inline export on declaration
+export const myFunction = () => { ... };
+export const myVariable = 'value';
+export const myPlugin = new Elysia({ name: 'my-plugin' });
+export type MyType = { id: string };
+
+// ❌ Bad - Separate export statement
+const myFunction = () => { ... };
+const myVariable = 'value';
+type MyType = { id: string };
+
+export { myFunction, myVariable };
+export type { MyType };
+```
+
+## 8. File & Directory Structure
 
 All apps and packages must follow these directory structures.
 
@@ -86,15 +106,17 @@ Feature-based structure with high cohesion.
 
 **Feature Structure:**
 ```
-src/features/[featureName]/
-├── [featureName].router.ts          # Feature router (aggregates all handlers)
-├── [moduleName]/
-│   ├── [moduleName].handler.ts      # HTTP Entry, Validation, Effect Runtime
-│   ├── [moduleName].service.ts      # Business logic, Orchestration
-│   ├── [moduleName].repository.ts   # Database interaction (Prisma)
-│   ├── [moduleName].schema.ts       # Zod validation & response schemas
-│   └── [moduleName].utils.ts        # Module-specific helpers, constants, configs
-└── utils.ts                         # Feature-level helpers (shared across modules)
+src/features/
+├── router.ts                        # Central app router (registers all feature routers)
+└── [featureName]/
+    ├── [featureName].router.ts      # Feature router (aggregates all handlers)
+    ├── [moduleName]/
+    │   ├── [moduleName].handler.ts  # HTTP Entry, Validation, Effect Runtime
+    │   ├── [moduleName].service.ts  # Business logic, Orchestration
+    │   ├── [moduleName].repository.ts # Database interaction (Prisma)
+    │   ├── [moduleName].schema.ts   # Zod validation & response schemas
+    │   └── [moduleName].utils.ts    # Module-specific helpers, constants, configs
+    └── utils.ts                     # Feature-level helpers (shared across modules)
 ```
 
 **Libs & Plugins:** directory-based structure under `src/libs/` and `src/plugins/`:

@@ -91,5 +91,3 @@ export function useApiClient(options: ApiClientOptions) {
 
   return apiClient;
 }
-
-export type { ApiClientOptions };

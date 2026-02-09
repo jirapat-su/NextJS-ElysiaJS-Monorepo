@@ -41,7 +41,7 @@ const seedUsers: SeedUser[] = [
   },
 ];
 
-const Seed_MasterData_User = async () => {
+export const Seed_MasterData_User = async () => {
   const users: Prisma.UserCreateManyInput[] = [];
   const accounts: Prisma.AccountCreateManyInput[] = [];
 
@@ -94,5 +94,3 @@ const Seed_MasterData_User = async () => {
     console.log(`[Account] Processed ${end}/${accounts.length}`);
   }
 };
-
-export { Seed_MasterData_User };
