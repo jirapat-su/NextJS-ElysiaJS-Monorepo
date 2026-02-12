@@ -1,5 +1,6 @@
-import Elysia from 'elysia';
-import { env } from '../../env';
+import { Elysia } from 'elysia';
+import { appStatusHandler } from './appStatus/appStatus.handler';
+import { healthCheckHandler } from './healthCheck/healthCheck.handler';
 
 export const generalRouter = new Elysia({
   name: 'general.router',
@@ -9,16 +10,5 @@ export const generalRouter = new Elysia({
     tags: ['General'],
   },
 })
-  .get('/health', ({ status }) => {
-    return status(200, {
-      status: 'ok',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-    });
-  })
-  .get('/', ({ status }) => {
-    return status(200, {
-      status: 'ok',
-      timezone: env.TZ,
-    });
-  });
+  .use(appStatusHandler)
+  .use(healthCheckHandler);

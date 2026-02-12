@@ -14,6 +14,55 @@ const processed = useMemo(() => data.map(expensive), [data]);
 const handleClick = useCallback((id: string) => onSelect(id), [onSelect]);
 ```
 
+### `useEffectEvent` — **MANDATORY for Effect-only callbacks**
+
+Use `useEffectEvent` when a callback is **only called from inside `useEffect`** and needs to read the latest props/state without re-triggering the Effect.
+
+**Rules:**
+- **MUST** only be called from inside `useEffect`, `useLayoutEffect`, `useInsertionEffect`, or other Effect Events.
+- **MUST NOT** be passed to child components, called from event handlers (`onClick`, `onChange`, etc.), or called during render.
+- **MUST NOT** be included in the Effect's dependency array.
+- If a callback is used in both an Effect **and** an event handler, keep it as `useCallback`.
+- Do NOT use `useEffectEvent` to hide dependencies — only for logic that genuinely should not re-trigger your Effect.
+
+```typescript
+// ✅ Good - callback only used inside useEffect, reads latest `theme`
+const onConnected = useEffectEvent(() => {
+  showNotification('Connected!', theme);
+});
+
+useEffect(() => {
+  const connection = createConnection(roomId);
+  connection.on('connected', onConnected);
+  connection.connect();
+  return () => connection.disconnect();
+}, [roomId]); // onConnected is NOT in deps
+
+// ✅ Good - timer reads latest state without restarting interval
+const onTick = useEffectEvent(() => {
+  setCount(count + increment);
+});
+
+useEffect(() => {
+  const id = setInterval(() => onTick(), 1000);
+  return () => clearInterval(id);
+}, []); // stable interval, always reads latest count + increment
+
+// ❌ Bad - used in onClick (event handler), NOT inside an Effect
+const loadData = useEffectEvent(async () => {
+  const result = await fetchData();
+  setData(result);
+});
+// This is wrong because loadData is called from onClick:
+<button onClick={loadData}>Refresh</button>
+
+// ✅ Correct - use useCallback instead when called from event handlers
+const loadData = useCallback(async () => {
+  const result = await fetchData();
+  setData(result);
+}, []);
+```
+
 ### `React.memo` - **MANDATORY for ALL Components**
 ```typescript
 export const UserCard = memo<UserCardProps>(({ user, onEdit }) => {
@@ -21,6 +70,100 @@ export const UserCard = memo<UserCardProps>(({ user, onEdit }) => {
   return <div><h3>{user.name}</h3><button onClick={handleEdit}>Edit</button></div>;
 });
 UserCard.displayName = 'UserCard';
+```
+
+---
+
+## 🆕 React 19 Features
+
+### `useActionState` — Form Actions with pending state
+```typescript
+'use client';
+import { useActionState } from 'react';
+
+const [state, submitAction, isPending] = useActionState(
+  async (previousState, formData) => {
+    const error = await updateName(formData.get('name'));
+    if (error) return error;
+    return null;
+  },
+  null,
+);
+
+return (
+  <form action={submitAction}>
+    <input type="text" name="name" />
+    <button type="submit" disabled={isPending}>Update</button>
+    {state && <p>{state}</p>}
+  </form>
+);
+```
+
+### `useOptimistic` — Optimistic UI updates
+```typescript
+'use client';
+import { useOptimistic } from 'react';
+
+const [optimisticName, setOptimisticName] = useOptimistic(currentName);
+
+const submitAction = async (formData: FormData) => {
+  const newName = formData.get('name') as string;
+  setOptimisticName(newName); // show immediately
+  const updatedName = await updateName(newName);
+  onUpdateName(updatedName);
+};
+```
+
+### `use` — Read promises and context conditionally
+```typescript
+import { use, Suspense } from 'react';
+
+// Read a promise (must come from outside render, e.g. parent component)
+function Comments({ commentsPromise }: { commentsPromise: Promise<Comment[]> }) {
+  const comments = use(commentsPromise); // suspends until resolved
+  return comments.map(c => <p key={c.id}>{c.text}</p>);
+}
+
+// Read context conditionally (impossible with useContext)
+function Heading({ children }: { children?: React.ReactNode }) {
+  if (!children) return null;
+  const theme = use(ThemeContext); // OK after early return
+  return <h1 style={{ color: theme.color }}>{children}</h1>;
+}
+```
+
+### `ref` as a prop — No more `forwardRef`
+```typescript
+// ✅ React 19 - ref is a regular prop
+function MyInput({ placeholder, ref }: { placeholder: string; ref?: React.Ref<HTMLInputElement> }) {
+  return <input placeholder={placeholder} ref={ref} />;
+}
+
+// ❌ Deprecated - forwardRef
+const MyInput = forwardRef<HTMLInputElement, Props>((props, ref) => {
+  return <input {...props} ref={ref} />;
+});
+```
+
+### `<Context>` as provider — Simpler context
+```typescript
+const ThemeContext = createContext('');
+
+// ✅ React 19
+<ThemeContext value="dark">{children}</ThemeContext>
+
+// ❌ Deprecated
+<ThemeContext.Provider value="dark">{children}</ThemeContext.Provider>
+```
+
+### Ref cleanup functions
+```typescript
+<input ref={(node) => {
+  // ref created — setup logic
+  return () => {
+    // cleanup when element is removed from DOM
+  };
+}} />
 ```
 
 ---
@@ -298,9 +441,11 @@ See [quality.instructions.md](./quality.instructions.md) for global gates.
 Before submitting frontend code, verify:
 
 - [ ] `useMemo` and `useCallback` for expensive logic/handlers
+- [ ] **`useEffectEvent` for callbacks only used inside Effects** (never in event handlers or passed to children)
 - [ ] **Every component uses `React.memo` with `displayName`**
 - [ ] **TanStack Query + `@repo/internal-api` for APIs**
 - [ ] **All forms use zod + Server Actions**
+- [ ] No `forwardRef` — use `ref` as a prop (React 19)
 - [ ] Heavy components lazy loaded
 - [ ] No barrel files (`index.ts`) in features
 - [ ] Checked `src/components/` and `packages/shadcn` before creating new components
