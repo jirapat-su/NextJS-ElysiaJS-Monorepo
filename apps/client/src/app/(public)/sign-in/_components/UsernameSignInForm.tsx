@@ -13,6 +13,7 @@ import {
 import { Input } from '@repo/shadcn/components/ui/input';
 import { authClient } from '@src/libs/auth/client';
 import { Eye, EyeOff, Loader2, Lock, User } from 'lucide-react';
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -62,7 +63,7 @@ export const UsernameSignInForm = memo<UsernameSignInFormProps>(
           onSetLoading(false);
           return;
         }
-        router.push(returnTo);
+        router.push(returnTo as Route);
       },
       [onSetError, onSetLoading, returnTo, router]
     );

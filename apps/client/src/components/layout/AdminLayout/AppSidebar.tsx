@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { memo, useCallback, useState } from 'react';
 
-const menuItems = [{ title: 'Home', icon: Home, url: '/' }];
+const menuItems = [{ title: 'Home', icon: Home, url: '/' }] as const;
 
 export const AppSidebar = memo(() => {
   const router = useRouter();

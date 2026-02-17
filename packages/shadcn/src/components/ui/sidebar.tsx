@@ -1,6 +1,5 @@
 'use client';
 
-import { Slot as SlotPrimitive } from 'radix-ui';
 import { Button } from '@repo/shadcn/components/ui/button';
 import { Input } from '@repo/shadcn/components/ui/input';
 import { Separator } from '@repo/shadcn/components/ui/separator';
@@ -22,6 +21,7 @@ import { useIsMobile } from '@repo/shadcn/hooks/use-mobile';
 import { cn } from '@repo/shadcn/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
+import { Slot as SlotPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';

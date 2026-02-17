@@ -1,6 +1,7 @@
 import { env } from '@src/env';
 import {
   anonymousClient,
+  inferAdditionalFields,
   multiSessionClient,
   usernameClient,
 } from 'better-auth/client/plugins';
@@ -14,5 +15,16 @@ export const authClient = createAuthClient({
       'x-client-app': 'client',
     },
   },
-  plugins: [usernameClient(), anonymousClient(), multiSessionClient()],
+  plugins: [
+    inferAdditionalFields({
+      user: {
+        role: {
+          type: 'string',
+        },
+      },
+    }),
+    usernameClient(),
+    anonymousClient(),
+    multiSessionClient(),
+  ],
 });
