@@ -33,7 +33,9 @@ import {
  * }
  * ```
  */
-export function useApiClient(options: ApiClientOptions) {
+type ApiClient = ReturnType<typeof treaty<ApiType>>;
+
+export function useApiClient(options: ApiClientOptions): ApiClient {
   const {
     baseUrl,
     headers: defaultHeaders = {},

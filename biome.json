@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
   "vcs": {
     "clientKind": "git",
     "enabled": true,
@@ -7,7 +7,6 @@
   },
   "css": {
     "formatter": {
-      "enabled": true,
       "quoteStyle": "double"
     },
     "linter": {
@@ -18,7 +17,16 @@
     }
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!node_modules",
+      "!.next",
+      "!build",
+      "!dist",
+      "!coverage",
+      "!public"
+    ]
   },
   "formatter": {
     "attributePosition": "auto",
@@ -33,15 +41,8 @@
     "useEditorconfig": true
   },
   "javascript": {
-    "assist": {
-      "enabled": true
-    },
     "formatter": {
       "arrowParentheses": "asNeeded",
-      "attributePosition": "auto",
-      "bracketSameLine": false,
-      "bracketSpacing": true,
-      "enabled": true,
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
       "quoteStyle": "single",
@@ -52,7 +53,6 @@
   },
   "json": {
     "formatter": {
-      "enabled": true,
       "trailingCommas": "none"
     },
     "linter": {
@@ -61,7 +61,14 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "turborepo": "recommended",
+      "next": "recommended",
+      "react": "recommended",
+      "types": "recommended"
+    },
     "rules": {
+      "recommended": true,
       "a11y": {
         "recommended": false
       },
@@ -75,90 +82,36 @@
         "noExcessiveNestedTestSuites": "error",
         "noForEach": "error",
         "noStaticOnlyClass": "error",
-        "noThisInStatic": "error",
-        "noUselessCatch": "error",
-        "noUselessConstructor": "error",
-        "noUselessEmptyExport": "error",
-        "noUselessFragments": "error",
-        "noUselessLabel": "error",
-        "noUselessLoneBlockStatements": "error",
-        "noUselessRename": "error",
-        "noUselessSwitchCase": "error",
-        "noUselessTernary": "error",
-        "noUselessThisAlias": "error",
-        "noUselessTypeConstraint": "error",
         "noVoid": "error",
-        "useFlatMap": "error",
-        "useLiteralKeys": "error",
-        "useOptionalChain": "error",
-        "useRegexLiterals": "error",
         "useSimpleNumberKeys": "error",
         "useSimplifiedLogicExpression": "error"
       },
       "correctness": {
-        "noChildrenProp": "error",
-        "noConstantCondition": "error",
         "noConstantMathMinMaxClamp": "error",
-        "noConstructorReturn": "error",
-        "noEmptyCharacterClassInRegex": "error",
-        "noEmptyPattern": "error",
-        "noInnerDeclarations": "error",
-        "noInvalidConstructorSuper": "error",
-        "noInvalidUseBeforeDeclaration": "error",
         "noNodejsModules": "off",
-        "noNonoctalDecimalEscape": "error",
-        "noPrecisionLoss": "error",
-        "noRenderReturnValue": "error",
-        "noSelfAssign": "error",
-        "noSetterReturn": "error",
-        "noSwitchDeclarations": "error",
-        "noUndeclaredVariables": "error",
-        "noUnreachable": "error",
-        "noUnreachableSuper": "error",
-        "noUnsafeFinally": "error",
-        "noUnsafeOptionalChaining": "error",
-        "noUnusedLabels": "error",
-        "noUnusedPrivateClassMembers": "error",
-        "noUnusedVariables": "error",
-        "noVoidElementsWithChildren": "error",
-        "noVoidTypeReturn": "error",
-        "useExhaustiveDependencies": "warn",
-        "useHookAtTopLevel": "error",
-        "useIsNan": "error",
         "useUniqueElementIds": "off",
-        "useValidForDirection": "error",
-        "useYield": "error",
         "noUnusedImports": {
           "fix": "safe",
-          "level": "error",
-          "options": {}
+          "level": "error"
         }
-      },
-      "recommended": true,
-      "security": {
-        "noDangerouslySetInnerHtml": "error",
-        "noDangerouslySetInnerHtmlWithChildren": "error",
-        "noGlobalEval": "error"
       },
       "style": {
         "noDefaultExport": "off",
         "noImplicitBoolean": "error",
-        "noInferrableTypes": "error",
-        "noNamespace": "error",
         "noNegationElse": "error",
         "noNonNullAssertion": "warn",
         "noParameterAssign": "error",
         "noParameterProperties": "off",
         "noShoutyConstants": "warn",
-        "noUnusedTemplateLiteral": "error",
-        "useAsConstAssertion": "error",
         "useBlockStatements": "error",
         "useCollapsedElseIf": "error",
-        "useConst": "error",
-        "useDefaultParameterLast": "error",
-        "useEnumInitializers": "error",
-        "useExponentiationOperator": "error",
-        "useExportType": "error",
+        "useConsistentArrayType": {
+          "level": "error",
+          "fix": "safe",
+          "options": {
+            "syntax": "shorthand"
+          }
+        },
         "useFilenamingConvention": {
           "level": "error",
           "options": {
@@ -169,23 +122,7 @@
         },
         "useForOf": "warn",
         "useFragmentSyntax": "error",
-        "useImportType": "error",
-        "useLiteralEnumMembers": "error",
-        "useNamingConvention": "off",
-        "useNodejsImportProtocol": "error",
-        "useNumberNamespace": "error",
-        "useSelfClosingElements": "error",
-        "useShorthandAssign": "error",
-        "useSingleVarDeclarator": "error",
-        "useTemplate": "error",
-        "useConsistentArrayType": {
-          "level": "error",
-          "fix": "safe",
-          "options": {
-            "syntax": "shorthand"
-          }
-        },
-        "useShorthandFunctionType": "error"
+        "useNamingConvention": "off"
       },
       "suspicious": {
         "noConsole": {
@@ -194,24 +131,7 @@
             "allow": ["warn", "error", "info"]
           }
         },
-        "noDebugger": "error",
-        "noDoubleEquals": "error",
-        "noDuplicateCase": "error",
-        "noDuplicateClassMembers": "error",
-        "noDuplicateObjectKeys": "error",
-        "noDuplicateParameters": "error",
-        "noEmptyBlockStatements": "error",
-        "noExplicitAny": "error",
-        "noFallthroughSwitchClause": "error",
-        "noGlobalAssign": "error",
-        "noMisleadingCharacterClass": "error",
-        "noPrototypeBuiltins": "error",
-        "noRedeclare": "error",
-        "noSelfCompare": "error",
-        "noSparseArray": "error",
-        "noUnknownAtRules": "off",
-        "noUnsafeDeclarationMerging": "error",
-        "noUnsafeNegation": "error"
+        "noUnknownAtRules": "off"
       },
       "nursery": {
         "recommended": false,

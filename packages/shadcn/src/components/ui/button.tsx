@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from '@repo/shadcn/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot as SlotPrimitive } from 'radix-ui';
