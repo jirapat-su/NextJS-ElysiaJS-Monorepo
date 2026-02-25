@@ -15,7 +15,7 @@ A modern full-stack monorepo powered by **Turborepo**, **Bun**, and **Biome**.
 
 | App | Description | Port | Framework |
 |-----|-------------|------|-----------|
-| `client` | Frontend application | 5006 | [Next.js](https://nextjs.org/) v16 + React 19 |
+| `client` | Frontend application | 5006 | [vinext](https://github.com/nicholasgriffintn/vinext) (Vite) + [Next.js](https://nextjs.org/) v16 + React 19 |
 | `api` | Backend API server | 5005 | [Elysia](https://elysiajs.com/) + Effect-TS |
 
 ### Packages
@@ -61,8 +61,8 @@ App Monorepo/
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) v1.3.6 or higher
-- [Node.js](https://nodejs.org/) v22 or higher
+- [Bun](https://bun.sh/) v1.3.0 or higher
+- [Node.js](https://nodejs.org/) v24 or higher
 
 ### Installation
 
@@ -172,7 +172,8 @@ bun run clean-deps
 ## Features
 
 ### Client (`apps/client`)
-- ⚡ **Next.js 16** with App Router
+- 🚀 **vinext** — Vite-based runner that wraps Next.js, enabling Vite-native dev server and build pipeline on top of Next.js 16
+- ⚡ **Next.js 16** with App Router (served via vinext)
 - ⚛️ **React 19** with React Compiler enabled
 - 🎨 **Tailwind CSS v4** for styling
 - 🧩 **shadcn/ui** components from `@repo/shadcn`
@@ -231,6 +232,7 @@ Comprehensive development guides are available in `.github/instructions/`:
 ## Useful Links
 
 - **Turborepo**: [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks) | [Caching](https://turborepo.com/docs/crafting-your-repository/caching) | [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
+- **vinext**: [GitHub](https://github.com/nicholasgriffintn/vinext) — Vite-based Next.js runner
 - **Next.js**: [Documentation](https://nextjs.org/docs) | [App Router](https://nextjs.org/docs/app)
 - **Elysia**: [Documentation](https://elysiajs.com/)
 - **Effect-TS**: [Documentation](https://effect.website/)
