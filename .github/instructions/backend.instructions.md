@@ -4,7 +4,9 @@ applyTo: 'apps/api/**'
 
 # Backend Development Rules - Elysia & Effect-TS
 
-Follow these rules for a resilient, type-safe backend.
+Follow these rules for a resilient, type-safe backend built on **Hexagonal Architecture** (Ports & Adapters).
+
+> See [clean-ddd-hexagonal skill](./../../.agents/skills/clean-ddd-hexagonal/SKILL.md) for full architecture reference.
 
 ## 📂 File Organization & Structure
 
@@ -182,59 +184,26 @@ import {
 
 ---
 
-## 🏗️ Architecture: Handler-Service-Repository (HSR)
+## 🏗️ Architecture: Hexagonal (Ports & Adapters)
 
-### 1. Repository Layer
+Dependencies point **inward only**: `Infrastructure → Application → Domain`
+
+| Layer | Hexagonal Role | Files |
+|-------|---------------|-------|
+| **Handler** | HTTP Adapter — Driver Port | `[module].handler.ts` |
+| **Service** | Application Use Case | `[module].service.ts` |
+| **Repository** | Persistence Adapter — Driven Port | `[module].repository.ts` |
+
+> **Rule:** Controllers (handlers) never call repositories directly — always go through the service layer.
+
+### 1. Repository — Persistence Adapter (Driven Port)
 
 **Critical Rules:**
 - Define errors with `Data.TaggedError` + `createErrorFactory`
 - Wrap Prisma calls in `Effect.tryPromise` and map errors in `catch`
 - Use `Effect.all` for independent queries
-- Use Prisma types for where clauses
-- Cache read queries; invalidate after writes; namespace = feature name
-
-**Using Prisma Types:**
-```typescript
-import { Prisma } from '@prisma/client';
-
-// ✅ Good - Using Prisma types for type safety
-const where: Prisma.UserWhereInput = {
-  email: userEmail,
-  isDeleted: false,
-  roles: {
-    some: {
-      role: 'STUDENT',
-    },
-  },
-  OR: [
-    {
-      email: {
-        contains: searchTerm, // MySQL uses column collation for case-insensitivity
-      },
-    },
-    {
-      displayName: {
-        contains: searchTerm,
-      },
-    },
-  ],
-};
-
-// ❌ Bad - No type annotation, prone to errors
-const where = {
-  email: userEmail,
-  isDeleted: false,
-  roles: {
-    some: {
-      role: 'STUDENT',
-    },
-  },
-};
-```
-
-**Case-Insensitive Search:**
-- MySQL: rely on collation, do not use `mode`
-- PostgreSQL: use `mode: 'insensitive'`
+- Use Prisma types for where clauses (see [database.instructions.md](./database.instructions.md))
+- For caching patterns, see **Caching** subsection below
 
 **Parallel Execution with Effect.all:**
 ```typescript
@@ -336,7 +305,103 @@ export const onboardingRepository = (props: OnboardingRepositoryProps) =>
   });
 ```
 
-### 2. Service Layer
+#### Caching
+
+Use `createCache(namespace)` from `src/libs/cache`. All operations are Effect-based and **infallible** — failures are logged and return fallback values; no need for extra error handling.
+
+**Key naming** — use `JSON.stringify([...parts])`:
+
+```typescript
+// ✅ Good
+const cacheKey = JSON.stringify(['user', 'profile', userId]);
+const listKey  = JSON.stringify(['products', 'list', page, limit]);
+
+// ❌ Bad
+const cacheKey = `user_profile_${userId}`;
+```
+
+**Namespace** — feature name (lowercase), one `createCache` per feature file:
+
+```typescript
+const userCache  = createCache('user');    // ✅ scoped
+const cache      = createCache('global'); // ❌ too broad
+```
+
+**TTL** — milliseconds (Keyv standard). Define constants in `[moduleName].utils.ts`:
+
+```typescript
+export const CACHE_TTL = {
+  SHORT:  60_000,       // 1 min  — volatile (OTPs, carts)
+  MEDIUM: 300_000,      // 5 min  — frequently updated (lists)
+  LONG:   3_600_000,    // 1 hr   — stable (profiles, configs)
+  DAY:    86_400_000,   // 24 hrs — rarely changed (lookup tables)
+} as const;
+```
+
+**Cache-Aside (Read)** — wrap Prisma call in `getOrSet`:
+
+```typescript
+const userCache = createCache('user');
+
+export const listUsersRepository = (props: ListUsersProps) =>
+  Effect.gen(function* () {
+    return yield* userCache.getOrSet(
+      JSON.stringify(['list', props.page, props.limit, props.search]),
+      Effect.tryPromise({
+        try: () => prisma.user.findMany({ where, skip, take }),
+        catch: e => UserRepositoryError.new('Failed to list users')(e),
+      }),
+      CACHE_TTL.MEDIUM
+    );
+  });
+```
+
+**Invalidation (Write)** — `delete` specific key + `clear` list namespace after mutations:
+
+```typescript
+const userCache = createCache('user');
+
+export const updateUserRepository = (props: UpdateUserProps) =>
+  Effect.gen(function* () {
+    const updatedUser = yield* Effect.tryPromise({
+      try: () => prisma.user.update({ where: { id: props.userId }, data: props.data }),
+      catch: e => UserRepositoryError.new('Failed to update user')(e),
+    });
+
+    yield* userCache.delete(JSON.stringify(['profile', props.userId]));
+    yield* userCache.clear(); // invalidate all list caches in namespace
+
+    return updatedUser;
+  });
+```
+
+**Cross-Namespace Invalidation** — create a handle to the other namespace:
+
+```typescript
+const orderCache = createCache('order');
+const userCache  = createCache('user'); // cross-namespace
+
+yield* orderCache.clear();
+yield* userCache.delete(JSON.stringify(['orders', props.userId]));
+```
+
+**Manual Get** — use `.get()` with `Option` for conditional logic:
+
+```typescript
+import { Option } from 'effect';
+
+const cached = yield* productCache.get<Product>(JSON.stringify(['detail', id]));
+
+if (Option.isSome(cached)) return cached.value;
+
+const product = yield* Effect.tryPromise({ ... });
+yield* productCache.set(JSON.stringify(['detail', id]), product, CACHE_TTL.LONG);
+return product;
+```
+
+---
+
+### 2. Service — Application Use Case
 
 **Critical Rules:**
 - Use `Effect.gen` for orchestration
@@ -374,12 +439,14 @@ export const onboardingService = (props: OnboardingServiceProps) => {
 // Service caching is for aggregated data only.
 ```
 
-### 3. Handler Layer
+### 3. Handler — HTTP Adapter (Driver Port)
 
 **Critical Rules:**
 - Apply `Effect.retry` + `Effect.timeout`
 - Execute with `RUNTIME('[featureName]')().runPromise`
 - `RUNTIME` uses feature name only
+
+> **Note:** `Effect.match` with `{ onFailure, onSuccess }` is a **valid and intentional pattern** in this project for mapping Effect results to HTTP responses. Some external references incorrectly list it as wrong — ignore them. `RUNTIME` is a project-specific singleton wrapper around `ManagedRuntime.make` from Effect — do not replace it with generic Effect runtime patterns.
 
 ```typescript
 import { Effect } from 'effect';
@@ -468,53 +535,7 @@ For complete database patterns including:
 
 **See:** `.github/instructions/api-integration.instructions.md`
 
-Use `@repo/fetch` for external APIs in Effect workflows.
-
-### Basic Usage in Repository/Service
-
-```typescript
-import { Effect } from 'effect';
-import { createHttpClient } from '@repo/fetch';
-import { createErrorFactory, type ErrorMsg } from '../../../libs/effect';
-
-export class ExternalApiError extends Data.TaggedError(
-  'Repository/ExternalApi/Error'
-)<ErrorMsg> {
-  static new = createErrorFactory(this);
-}
-
-const client = createHttpClient({
-  baseUrl: 'https://api.external-service.com',
-  headers: { 'Authorization': `Bearer ${env.EXTERNAL_API_KEY}` },
-  withCredentials: false,
-});
-
-export const fetchExternalData = (id: string) => {
-  return Effect.gen(function* () {
-    const response = yield* Effect.tryPromise({
-      try: () => client.fetch<ExternalData>(`/data/${id}`),
-      catch: e => ExternalApiError.new('Failed to fetch external data')(e),
-    });
-
-    return response.data;
-  });
-};
-```
-
-### With Retry Policy
-
-```typescript
-import { Effect } from 'effect';
-import { API_RETRY_POLICY } from '../../../utils/retryConfig';
-import { API_TIMEOUT } from '../../../utils/timeoutConfig';
-
-export const fetchWithResilience = (id: string) => {
-  return fetchExternalData(id).pipe(
-    Effect.retry(API_RETRY_POLICY),
-    Effect.timeout(API_TIMEOUT)
-  );
-};
-```
+Use `@repo/fetch` for external APIs in Effect workflows. Wrap in `Effect.tryPromise` with retry/timeout — same pattern as the handler layer.
 
 ---
 

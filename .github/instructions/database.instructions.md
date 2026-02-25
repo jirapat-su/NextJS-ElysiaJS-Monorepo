@@ -15,12 +15,52 @@ Prisma schema conventions and database access patterns for apps/api.
 ```bash
 cd apps/api
 bun run db:generate        # Generate Prisma Client (runs on postinstall)
-bun run db:migrate         # Create migration (dev only)
+bun run db:migrate         # Create migration --create-only (review before applying!)
 bun run db:migrate:deploy  # Apply migrations (production)
 bun run db:seed            # Seed database
 bun run db:reset           # Reset and reseed (⚠️ dev only)
 bun run db:validate        # Validate schema
 ```
+
+> **`db:migrate` always uses `--create-only`** — this creates the migration file but does NOT apply it. After reviewing the generated SQL, run `bun run db:migrate:deploy` to apply. Never skip this review step.
+
+---
+
+## 🗄️ Database Driver: MariaDB Adapter (CRITICAL)
+
+This project uses **MySQL via `@prisma/adapter-mariadb`**, NOT the default Prisma MySQL driver. Do NOT initialize `PrismaClient` without the adapter.
+
+```typescript
+// ✅ Correct — always use the MariaDB adapter (see src/libs/prisma/index.ts)
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { PrismaClient } from '@prisma/client';
+
+const adapter = new PrismaMariaDb({
+  host: 'localhost',
+  port: 3306,
+  user: 'root',
+  password: 'password',
+  database: 'mydb',
+});
+
+const prisma = new PrismaClient({ adapter });
+
+// ❌ Wrong — plain PrismaClient without adapter will not connect
+const prisma = new PrismaClient();
+```
+
+> **Always import `prisma` from `src/libs/prisma`** — never instantiate `PrismaClient` directly in features. The lib handles singleton pattern and adapter wiring.
+
+```typescript
+// ✅ Correct
+import { prisma } from '../../../libs/prisma';
+
+// ❌ Wrong — creates a new instance without adapter
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+```
+
+> **Note for Prisma skills:** Skills may show `prisma.user.delete()` as a valid example — in this project **hard deletes are forbidden**. Always use soft delete (`isDeleted: true`). See soft delete section below.
 
 ---
 
@@ -343,12 +383,14 @@ yield* userCache.clear();
 
 Before submitting database-related code.
 
+- [ ] `prisma` imported from `src/libs/prisma` (never instantiate directly)
 - [ ] Using Prisma types for where clauses (e.g., `Prisma.UserWhereInput`)
 - [ ] Referential actions: `onUpdate: Cascade`, `onDelete: SetNull`
-- [ ] Soft deletion used instead of hard deletes
+- [ ] Soft deletion used instead of hard deletes (`isDeleted: true`)
 - [ ] All queries filter by `{ isDeleted: false }` when needed
 - [ ] Independent queries use `Effect.all` for parallel execution
 - [ ] Database calls use `Effect.tryPromise` with error mapping
 - [ ] Cache namespace matches feature name exactly
 - [ ] Cache invalidation after write operations (create/update/delete)
 - [ ] Cache used in Repository layer for DB queries
+- [ ] `db:migrate` reviewed before applying (`--create-only` → review SQL → deploy)

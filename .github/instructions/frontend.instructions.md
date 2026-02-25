@@ -192,6 +192,71 @@ import { UserSettings } from '@/features/user/UserSettings';
 
 ---
 
+## 🎨 Tailwind CSS v4
+
+This project uses **Tailwind CSS v4** with CSS-first configuration. There is **no `tailwind.config.js`**.
+
+### Key Differences from v3
+
+| v3 | v4 |
+|----|----|
+| `tailwind.config.js` | CSS `@theme` directive |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| `theme.extend` in JS | `@theme` block in CSS |
+| Plugin API | `@utility` directive |
+| `bg-opacity-*` | `bg-black/50` (slash syntax) |
+
+### CSS-First Configuration
+
+```css
+/* globals.css */
+@import "tailwindcss";
+
+@theme {
+  --color-primary: oklch(0.7 0.2 240);
+  --color-secondary: oklch(0.6 0.15 200);
+  --font-sans: 'Inter', sans-serif;
+  --radius-lg: 0.75rem;
+  --spacing-18: 4.5rem;
+}
+
+/* Custom utilities */
+@utility container {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+```
+
+### Using Theme Values
+
+```css
+/* ✅ Reference theme tokens with var() */
+.my-element {
+  background-color: var(--color-primary);
+  border-radius: var(--radius-lg);
+}
+```
+
+```tsx
+{/* ✅ Use in JSX as normal Tailwind classes */}
+<div className="bg-primary text-white rounded-lg p-4">
+  <p className="text-secondary">Hello</p>
+</div>
+```
+
+### shadcn/ui with Tailwind v4
+
+shadcn/ui tokens are defined in `packages/shadcn/src/styles/globals.css` and imported via:
+
+```css
+@import "@repo/shadcn/styles/globals.css";
+```
+
+**Do NOT** redefine shadcn tokens in app-level CSS — extend only via `@theme`.
+
+---
+
 ## ⚡ Next.js
 
 ### Server vs Client

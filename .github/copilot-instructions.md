@@ -56,7 +56,7 @@ For comprehensive development guidelines, refer to:
 | ⭐ [quality.instructions.md](instructions/quality.instructions.md) | `**` | **MUST READ** - Quality gates, file & directory structure, pre-submission checklist |
 | [backend.instructions.md](instructions/backend.instructions.md) | `apps/api/**` | HSR architecture, Effect-TS patterns, Elysia handlers |
 | [database.instructions.md](instructions/database.instructions.md) | `apps/api/**` | Prisma multi-file schema, migrations, model templates |
-| [frontend.instructions.md](instructions/frontend.instructions.md) | `apps/back-office/**`, `apps/web/**` | React patterns, performance rules, Next.js specifics |
+| [frontend.instructions.md](instructions/frontend.instructions.md) | `apps/client/**` | React patterns, performance rules, Next.js & Tailwind v4 specifics |
 | [api-integration.instructions.md](instructions/api-integration.instructions.md) | `**` | Internal/external API clients, cookie-based auth |
 
 ---

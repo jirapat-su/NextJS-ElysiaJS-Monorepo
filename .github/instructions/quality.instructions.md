@@ -428,6 +428,109 @@ export const env = createEnv({
 
 ---
 
+## 14. Strict Type Safety
+
+### No `any` — Use `unknown` Instead
+
+Never use `any`. Use `unknown` and narrow with type guards or Zod.
+
+```typescript
+// ✅ Good
+function handleError(error: unknown) {
+  if (error instanceof Error) {
+    console.error(error.message);
+  }
+}
+
+// ✅ Good - Zod parse for external data
+const data = UserSchema.parse(rawData);
+
+// ❌ Bad
+function handleError(error: any) {
+  console.error(error.message); // unsafe
+}
+```
+
+### No Unsafe `as` Type Assertions
+
+Avoid `as` unless interfacing with untyped third-party APIs. Use type guards or Zod instead.
+
+```typescript
+// ✅ Good - Zod parse
+const user = UserSchema.parse(data);
+
+// ✅ Good - type guard
+function isUser(val: unknown): val is User {
+  return typeof val === 'object' && val !== null && 'id' in val;
+}
+
+// ❌ Bad - bypasses type checking
+const user = data as User;
+```
+
+---
+
+## 15. Logging Standards
+
+- **Backend**: Always use `logger` from `src/libs/logger`. Never use `console.log`.
+- **Frontend**: Use `console.error` only inside error boundaries or server actions. Never use `console.log` in production code.
+
+```typescript
+// ✅ Good - Backend
+import { logger } from '../../../libs/logger';
+logger.info({ userId }, 'User created');
+logger.error({ error, endpoint }, 'Request failed');
+
+// ❌ Bad
+console.log('User created', userId);
+console.log('Request failed', error);
+```
+
+---
+
+## 16. Boolean Naming Convention
+
+All boolean variables, props, and state must be prefixed with `is`, `has`, `can`, or `should`.
+
+```typescript
+// ✅ Good
+type User = {
+  isActive: boolean;
+  isDeleted: boolean;
+  hasPermission: boolean;
+  canDelete: boolean;
+};
+
+const [isLoading, setIsLoading] = useState(false);
+
+// ❌ Bad
+type User = {
+  active: boolean;
+  deleted: boolean;
+  permission: boolean;
+};
+
+const [loading, setLoading] = useState(false);
+```
+
+---
+
+## 17. Dependency Policy
+
+Before adding a new package:
+
+1. **Check bundle size** at [bundlephobia.com](https://bundlephobia.com)
+2. **Check maintenance** — last publish date, open issues, weekly downloads
+3. **Prefer existing deps** — check if functionality already exists in installed packages
+4. **Prefer Bun-compatible** packages (avoid packages with native Node.js-only bindings when possible)
+
+```bash
+# Check what's already installed before adding
+bun pm ls
+```
+
+---
+
 ## Pre-Submission Checklist
 
 Before submitting any code changes, verify:
@@ -437,10 +540,15 @@ Before submitting any code changes, verify:
 - [ ] Used `type` instead of `interface`
 - [ ] Cognitive complexity < 15
 - [ ] No commented-out code
+- [ ] No `any` types — use `unknown` + type guards or Zod
+- [ ] No unsafe `as` assertions
+- [ ] Boolean variables prefixed with `is`, `has`, `can`, or `should`
+- [ ] Backend uses `logger`, not `console.log`
 - [ ] Date/time uses `date-fns` and ISO 8601 strings
 - [ ] File naming follows conventions
 - [ ] Directory structure follows Section 8
 - [ ] No unnecessary `// biome-ignore` comments
 - [ ] Environment variables use `@t3-oss/env-*` with Zod validation
+- [ ] New dependencies reviewed for bundle size and maintenance status
 
 **These rules apply to all files within this repository.**

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "skills": {
+    "better-auth-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "computedHash": "a24359053259e55a75972cab4bf0b0e37e1393bac5f3756ec2e3a7b4b3778d2a"
+    },
+    "caching-strategy": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "computedHash": "28716632b897c81d3d57cc799e572c4f670f0d17f7cb8dc3eb65dd8c5b1b7f9f"
+    },
+    "clean-ddd-hexagonal": {
+      "source": "ccheney/robust-skills",
+      "sourceType": "github",
+      "computedHash": "b9a54e257685086d0034bd8277964452b7208e2f18bf68d158996936ce667b6a"
+    },
+    "code-connect-components": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "computedHash": "3578d08aaa41acb4bb48a85e8f5325cad399d84a41f06ccaf75d2ade69c73a96"
+    },
+    "create-design-system-rules": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "computedHash": "3dd355fd83051e794aef7ce2d8072881967d660e231c7a1cde3c638348c8ba71"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
+    "implement-design": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "computedHash": "aebdbdb64e8457825736d85ece85213abe82d43bc6a7193b4a85be079147bdab"
+    },
+    "vercel-composition-patterns": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "f98931159fa9c7fed043bcd18a891a46dcf89ababa38df13a4c5b7b30dc0ce07"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "4365be772fd3b41994a72ad478472c6d680678e7f3859860ab010e9c46e48ee0"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
+    }
+  }
+}

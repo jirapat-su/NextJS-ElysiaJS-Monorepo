@@ -41,7 +41,7 @@ import { env } from '@/env';
 
 export const UserProfile = memo(() => {
   const api = useApiClient({
-    baseUrl: env.NEXT_PUBLIC_API_URL,
+    baseUrl: env.NEXT_PUBLIC_API_INTERNAL_URL,
   });
   const [user, setUser] = useState<User | null>(null);
 
@@ -69,7 +69,7 @@ import { useApiClient } from '@repo/internal-api/client';
 import { env } from '@/env';
 
 export const useUserAPI = () => {
-  const api = useApiClient({ baseUrl: env.NEXT_PUBLIC_API_URL });
+  const api = useApiClient({ baseUrl: env.NEXT_PUBLIC_API_INTERNAL_URL });
   const queryClient = useQueryClient();
 
   const getMe = useQuery({
@@ -129,7 +129,7 @@ import { env } from '@/env';
 
 export default async function DashboardPage() {
   const { client } = createApiClient({
-    baseUrl: env.API_INTERNAL_URL,
+    baseUrl: env.NEXT_PUBLIC_API_INTERNAL_URL,
     getCookies: async () => (await cookies()).toString(),
   });
 
@@ -152,10 +152,22 @@ export default async function DashboardPage() {
 ```tsx
 // For public endpoints that don't need authentication
 const { client } = createApiClient({
-  baseUrl: env.API_INTERNAL_URL,
+  baseUrl: env.NEXT_PUBLIC_API_INTERNAL_URL,
 });
 
 const { data } = await client.public.health.get();
+```
+
+#### Aborting Requests
+
+```tsx
+const { client, abortAll } = createApiClient({
+  baseUrl: env.NEXT_PUBLIC_API_INTERNAL_URL,
+  getCookies: async () => (await cookies()).toString(),
+});
+
+// Cancel all pending requests (e.g., on navigation/unmount)
+abortAll();
 ```
 
 ---
@@ -183,6 +195,9 @@ type Post = {
 const response = await client.fetch<Post[]>('/posts');
 console.log(response.data);    // Post[]
 console.log(response.status);  // 200
+
+// Abort all pending requests
+client.abortAll();
 ```
 
 ### POST Request
@@ -392,11 +407,8 @@ See [quality.instructions.md](./quality.instructions.md) for global gates.
 
 ```bash
 # .env.local (Next.js apps)
-# Client-side (exposed to browser)
-NEXT_PUBLIC_API_URL=http://localhost:5005
-
-# Server-side only
-API_INTERNAL_URL=http://localhost:5005
+# Single variable used for both client and server-side calls
+NEXT_PUBLIC_API_INTERNAL_URL=http://localhost:5005
 ```
 
 ### Checklist
