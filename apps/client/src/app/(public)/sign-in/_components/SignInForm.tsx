@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   User,
 } from 'lucide-react';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { memo, useCallback, useMemo, useState } from 'react';
@@ -58,7 +59,7 @@ export const SignInForm = memo(() => {
       setErrorMessage(error.message || 'Guest access failed');
       setIsLoading(false);
     } else {
-      router.push(returnTo);
+      router.push(returnTo as Route);
     }
   }, [isAnonymousSession, returnTo, router]);
 
@@ -106,10 +107,10 @@ export const SignInForm = memo(() => {
         <div className="relative z-10 flex items-center justify-between text-xs text-zinc-500">
           <p>© 2026 App Monorepo. All rights reserved.</p>
           <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-zinc-300">
+            <Link href={'/privacy' as Route} className="hover:text-zinc-300">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-zinc-300">
+            <Link href="/terms-of-service" className="hover:text-zinc-300">
               Terms
             </Link>
           </div>
@@ -232,7 +233,7 @@ export const SignInForm = memo(() => {
               </Link>{' '}
               and{' '}
               <Link
-                href="/privacy"
+                href={'/privacy' as Route}
                 className="underline underline-offset-4 hover:text-primary"
               >
                 Privacy Policy

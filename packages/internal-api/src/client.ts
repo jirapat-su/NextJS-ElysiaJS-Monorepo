@@ -1,5 +1,5 @@
 import { treaty } from '@elysiajs/eden';
-import type { ApiType } from 'api/src';
+import type internalAPI from 'api/src/main';
 import axios from 'axios';
 import { useMemo, useRef, useState } from 'react';
 import {
@@ -33,7 +33,10 @@ import {
  * }
  * ```
  */
-export function useApiClient(options: ApiClientOptions) {
+type ApiType = typeof internalAPI;
+type ApiClient = ReturnType<typeof treaty<ApiType>>;
+
+export function useApiClient(options: ApiClientOptions): ApiClient {
   const {
     baseUrl,
     headers: defaultHeaders = {},

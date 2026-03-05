@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Code Quality Checks",
+  "description": "Runs comprehensive code quality checks including file length, boolean naming, export pattern, and cognitive complexity",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run these quality checks on the edited file:\n1. File Length: Does it exceed 500 lines? If yes, suggest refactoring into smaller components/hooks/utilities.\n2. Boolean Naming: Are all boolean variables/props/state prefixed with is/has/can/should? Flag violations.\n3. Export Pattern: Are all exports inline (export const/type)? Flag any separate export statements.\n4. Cognitive Complexity: Do any functions have complexity > 15? Suggest guard clauses if needed.\n\nOnly report issues found. If all checks pass, respond with \"All quality checks passed.\""
+  }
+}
