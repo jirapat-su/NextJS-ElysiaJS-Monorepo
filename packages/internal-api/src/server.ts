@@ -1,6 +1,6 @@
 import { treaty } from '@elysiajs/eden';
-import type { ApiType } from 'api/src';
-import axios from 'axios';
+import type internalAPI from 'api/src/main';
+import axios, { type AxiosInstance } from 'axios';
 import {
   axiosToFetchResponse,
   generateSecureToken,
@@ -35,7 +35,18 @@ import {
  * const { data, error } = await client.users({ id: '1' }).get();
  * ```
  */
-export function createApiClient(options: ServerApiClientOptions) {
+type ApiType = typeof internalAPI;
+type ApiClient = ReturnType<typeof treaty<ApiType>>;
+
+type CreateApiClientResult = {
+  client: ApiClient;
+  axiosInstance: AxiosInstance;
+  abortAll: () => void;
+};
+
+export function createApiClient(
+  options: ServerApiClientOptions
+): CreateApiClientResult {
   const {
     baseUrl,
     headers: defaultHeaders = {},

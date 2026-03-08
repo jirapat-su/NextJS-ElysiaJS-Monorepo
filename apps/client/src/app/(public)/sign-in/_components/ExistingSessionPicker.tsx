@@ -7,6 +7,7 @@ import {
 } from '@repo/shadcn/components/ui/avatar';
 import { Button } from '@repo/shadcn/components/ui/button';
 import { authClient } from '@src/libs/auth/client';
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback, useEffect, useState } from 'react';
 
@@ -78,7 +79,7 @@ export const ExistingSessionPicker = memo<ExistingSessionPickerProps>(
           return;
         }
         if (isCurrent) {
-          router.push(returnTo);
+          router.push(returnTo as Route);
           return;
         }
         onSetLoading(true);
@@ -93,7 +94,7 @@ export const ExistingSessionPicker = memo<ExistingSessionPickerProps>(
           return;
         }
         await loadSessions();
-        router.push(returnTo);
+        router.push(returnTo as Route);
       },
       [
         hasActiveSession,

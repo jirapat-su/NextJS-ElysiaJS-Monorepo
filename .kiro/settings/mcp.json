@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "bunx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "prisma-mcp-server": {
+      "command": "bunx",
+      "args": ["-y", "prisma", "mcp"]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {},
+      "autoApprove": ["fetch"]
+    },
+    "next-devtools": {
+      "command": "bunx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "bunx",
+      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "autoApprove": [
+        "new_page",
+        "list_pages",
+        "take_snapshot",
+        "navigate_page",
+        "click",
+        "wait_for",
+        "take_screenshot",
+        "evaluate_script",
+        "press_key"
+      ]
+    }
+  }
+}

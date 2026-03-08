@@ -120,22 +120,24 @@ export function createCache(namespace: string): CacheInstance {
           },
         }).pipe(Effect.orElseSucceed(() => undefined));
 
-        if (cached !== undefined) {
+        if (cached !== undefined && cached !== null) {
           return cached;
         }
 
         const value = yield* compute;
 
-        yield* Effect.tryPromise({
-          try: async () => {
-            await cache.set(key, value, ttl);
-            return true;
-          },
-          catch: error => {
-            logger.warn({ error, namespace, key }, '[CACHE] SET failed');
-            return error;
-          },
-        }).pipe(Effect.orElseSucceed(() => false));
+        if (value !== undefined && value !== null) {
+          yield* Effect.tryPromise({
+            try: async () => {
+              await cache.set(key, value, ttl);
+              return true;
+            },
+            catch: error => {
+              logger.warn({ error, namespace, key }, '[CACHE] SET failed');
+              return error;
+            },
+          }).pipe(Effect.orElseSucceed(() => false));
+        }
 
         return value;
       }),

@@ -6,6 +6,7 @@ A modern full-stack monorepo powered by **Turborepo**, **Bun**, and **Biome**.
 
 - **Runtime & Package Manager**: [Bun](https://bun.sh/)
 - **Monorepo Tool**: [Turborepo](https://turborepo.com/)
+- **Build & Deploy**: [Vite](https://vite.dev/) + [Nitro](https://nitro.build/) v3
 - **Linting & Formatting**: [Biome](https://biomejs.dev/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 
@@ -15,8 +16,8 @@ A modern full-stack monorepo powered by **Turborepo**, **Bun**, and **Biome**.
 
 | App | Description | Port | Framework |
 |-----|-------------|------|-----------|
-| `client` | Frontend application | 5006 | [Next.js](https://nextjs.org/) v16 + React 19 |
-| `api` | Backend API server | 5005 | [Elysia](https://elysiajs.com/) + Effect-TS |
+| `client` | Frontend application | 5006 | [vinext](https://github.com/cloudflare/vinext) (Vite) + [Next.js](https://nextjs.org/) v16 + React 19 + [Nitro](https://nitro.build/) |
+| `api` | Backend API server | 5005 | [Elysia](https://elysiajs.com/) + Effect-TS + [Nitro](https://nitro.build/) |
 
 ### Packages
 
@@ -61,8 +62,8 @@ App Monorepo/
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) v1.3.6 or higher
-- [Node.js](https://nodejs.org/) v22 or higher
+- [Bun](https://bun.sh/) v1.3.0 or higher
+- [Node.js](https://nodejs.org/) v24 or higher
 
 ### Installation
 
@@ -172,11 +173,13 @@ bun run clean-deps
 ## Features
 
 ### Client (`apps/client`)
-- ⚡ **Next.js 16** with App Router
+- 🚀 **vinext** — Vite-based runner that wraps Next.js, enabling Vite-native dev server and build pipeline on top of Next.js 16
+- ⚡ **Next.js 16** with App Router (served via vinext)
 - ⚛️ **React 19** with React Compiler enabled
 - 🎨 **Tailwind CSS v4** for styling
 - 🧩 **shadcn/ui** components from `@repo/shadcn`
 - 📁 **Optimized Structure** with `app/`, `features/` (shared), and `components/` (shared)
+- 🏗️ **Nitro v3** — Universal build & deployment via Vite plugin (supports Bun, Vercel, and more presets)
 
 ### API (`apps/api`)
 - 🦊 **Elysia** - Bun-first web framework with OpenAPI support
@@ -184,7 +187,7 @@ bun run clean-deps
 - 🗄️ **Prisma** - Type-safe ORM with multi-file schema organization
 - 🔐 **Cookie-based authentication** with automatic token refresh
 - 📊 **HSR Architecture** (Handler-Service-Repository pattern)
-- 🚀 Hot reload with `bun run --watch`
+- 🏗️ **Nitro v3** — Build & bundle via Vite plugin with standalone binary support (`build:standalone`)
 - 📝 **Audit logging** for user actions
 - 🔧 TypeScript support with strict mode
 - 🏗️ **Structured Libs & Plugins** for better organization
@@ -231,6 +234,8 @@ Comprehensive development guides are available in `.github/instructions/`:
 ## Useful Links
 
 - **Turborepo**: [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks) | [Caching](https://turborepo.com/docs/crafting-your-repository/caching) | [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
+- **Nitro**: [Documentation](https://nitro.build/) — Universal build system (v3 via Vite plugin)
+- **vinext**: [GitHub](https://github.com/cloudflare/vinext) — Vite-based Next.js runner
 - **Next.js**: [Documentation](https://nextjs.org/docs) | [App Router](https://nextjs.org/docs/app)
 - **Elysia**: [Documentation](https://elysiajs.com/)
 - **Effect-TS**: [Documentation](https://effect.website/)

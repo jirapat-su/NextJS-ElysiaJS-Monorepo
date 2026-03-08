@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Lint and Type Check on Save",
+  "description": "Runs lint and type check when TypeScript/TSX files are saved",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "bun run lint && tsc --noEmit",
+    "timeout": 120
+  }
+}

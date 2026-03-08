@@ -64,7 +64,11 @@ function getPrisma(): PrismaClient {
   }
 
   const connectionInfo = parseDatabaseUrl(env.DATABASE_URL);
-  const adapter = new PrismaMariaDb(connectionInfo);
+  const adapter = new PrismaMariaDb({
+    ...connectionInfo,
+    allowPublicKeyRetrieval: true,
+    ssl: false,
+  });
 
   prismaInstance = new PrismaClient({ adapter });
 
